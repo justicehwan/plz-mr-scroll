@@ -1,0 +1,50 @@
+/* 메일함 — 접두어 app-mail- , 이 페이지는 box-sizing 을 건드리지 않고 브라우저 기본(content-box) 그대로 둔다 */
+.app-mail-root {
+  display: grid;
+  grid-template-columns: 220px 340px minmax(0, 1fr);
+  height: calc(100vh - var(--lab-bar));
+  background: #fff;
+  font-size: 13px;
+}
+
+/* 1열 — 열 자신이 스크롤, 여백은 안쪽 래퍼 */
+.app-mail-col1 { overflow-y: auto; background: #fde68a; border-right: 4px solid #d97706; }
+.app-mail-col1-inner { padding: 12px 14px; }
+.app-mail-compose { width: 100%; height: 32px; margin-bottom: 8px; }
+.app-mail-folder { padding: 6px 8px; background: #fef3c7; margin-bottom: 2px; cursor: pointer; }
+.app-mail-sub { margin-left: 16px; background: #fffbeb; }
+
+/* 2열 — 헤더 고정 + 아래 스크롤(gutter 양쪽 선점) */
+.app-mail-col2 { display: flex; flex-direction: column; min-height: 0; background: #e0f2fe; border-right: 4px solid #0284c7; }
+.app-mail-col2-head { flex: none; display: flex; gap: 6px; align-items: center; padding: 8px 12px; background: #bae6fd; }
+.app-mail-col2-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable both-edges; }
+.app-mail-day { position: sticky; top: 0; padding: 4px 12px; background: #0284c7; color: #fff; }
+.app-mail-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #7dd3fc; background: #f0f9ff; }
+.app-mail-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.app-mail-row-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-mail-empty { padding: 30px; text-align: center; }
+
+/* 3열 — 스크롤바 17px 을 가정한 padding 하드코딩 (왼쪽 28 / 오른쪽 17) */
+.app-mail-col3 { min-height: 0; display: flex; flex-direction: column; background: #dcfce7; }
+.app-mail-col3-scroll { flex: 1; overflow-y: auto; padding: 0 17px 28px 28px; }
+.app-mail-subject { position: sticky; top: 0; margin: 0 -28px 12px; padding: 14px 28px; background: #86efac; z-index: 1; }
+.app-mail-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; background: #bbf7d0; }
+.app-mail-chip { flex: none; padding: 4px 10px; background: #fff; border: 1px solid #16a34a; }
+.app-mail-msg { margin-bottom: 8px; border: 1px solid #16a34a; background: #f0fdf4; }
+.app-mail-msg-head { padding: 6px 10px; background: #bbf7d0; cursor: pointer; }
+.app-mail-msg-body { padding: 10px; }
+.app-mail-code { overflow-x: auto; margin: 8px 0; padding: 10px; background: #1e293b; color: #e2e8f0; }
+.app-mail-actions { display: flex; gap: 6px; margin: 8px 0; }
+.app-mail-img { background: #fff; border: 2px dashed #16a34a; display: flex; align-items: center; justify-content: center; }
+.app-mail-reply { width: 100%; resize: vertical; }
+
+/* 새 메일 쓰기 모달 */
+.app-mail-overlay {
+  position: fixed; top: var(--lab-bar); left: 0; right: 0; bottom: 0; z-index: 50;
+  background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center;
+}
+.app-mail-modal { width: 560px; max-width: 90%; max-height: 70%; display: flex; flex-direction: column; background: #fff; border: 3px solid #7c3aed; }
+.app-mail-modal-head { flex: none; display: flex; justify-content: space-between; padding: 10px 14px; background: #ede9fe; }
+.app-mail-modal-body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; padding-right: 8px; background: #f5f3ff; }
+.app-mail-modal-body input, .app-mail-modal-body textarea { display: block; width: 100%; margin-bottom: 8px; }
+.app-mail-attach { display: flex; justify-content: space-between; padding: 6px 8px; margin-bottom: 4px; background: #ddd6fe; }

@@ -1,0 +1,54 @@
+/* 설정 화면 — 접두어 app-settings- . 문서 스크롤 페이지 */
+html.page-app-settings { background: #e5e7eb; }
+
+/* 맨 위 배너: 100vw — 스크롤바 폭을 포함해 가로로 넘칠 수 있다 */
+.app-settings-banner { width: 100vw; height: 40px; line-height: 40px; text-align: center; background: #fb7185; color: #fff; }
+
+/* 높이를 고정하지 않는다 — 내용이 길면 문서가 스크롤 */
+.app-settings-root { display: flex; align-items: flex-start; min-height: calc(100vh - var(--lab-bar) - 40px); }
+
+.app-settings-nav {
+  position: sticky; top: var(--lab-bar);
+  flex: none; width: 220px; box-sizing: border-box;
+  max-height: calc(100vh - var(--lab-bar)); overflow-y: auto;
+  padding: 12px; background: #fff7ed; border-right: 3px solid #ea580c;
+}
+.app-settings-nav-item { padding: 8px; margin-bottom: 2px; background: #ffedd5; }
+
+.app-settings-main { flex: 1; min-width: 0; padding: 24px 24px 90px; background: #d1fae5; }
+.app-settings-actions { display: flex; gap: 6px; margin-bottom: 12px; }
+.app-settings-sec { margin-bottom: 12px; background: #fff; border: 1px solid #059669; }
+.app-settings-sec h3 { margin: 0; padding: 10px 14px; background: #a7f3d0; cursor: pointer; font-size: 14px; }
+.app-settings-sec-body { padding: 14px; }
+.app-settings-field { display: block; padding: 8px 10px; margin-top: 6px; background: #ecfdf5; border: 1px solid #6ee7b7; }
+
+/* 역할 표 — 카드 자체가 스크롤, 안의 absolute 팝업이 영역을 늘린다 */
+.app-settings-roletable { max-height: 240px; overflow: auto; margin-top: 8px; border: 2px solid #0d9488; background: #f0fdfa; }
+.app-settings-rolerow { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid #99f6e4; }
+.app-settings-select { position: relative; }
+.app-settings-options { position: absolute; right: 0; top: 100%; z-index: 3; width: 150px; margin: 0; padding: 0; list-style: none; background: #fff; border: 1px solid #0d9488; }
+.app-settings-options li { padding: 6px 10px; cursor: pointer; }
+
+/* 고정 요소들 */
+.app-settings-savebar {
+  position: fixed; left: 220px; right: 0; bottom: 0; height: 52px; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+  background: #1e293b; color: #fff;
+}
+.app-settings-toast { position: fixed; top: calc(var(--lab-bar) + 12px); right: 12px; z-index: 60; padding: 10px 16px; background: #16a34a; color: #fff; }
+
+.app-settings-overlay {
+  position: fixed; top: var(--lab-bar); left: 0; right: 0; bottom: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45);
+}
+.app-settings-modal { width: 480px; background: #fff; border: 3px solid #7c3aed; }
+.app-settings-modal-head { display: flex; justify-content: space-between; padding: 10px 14px; background: #ede9fe; }
+.app-settings-modal-body { max-height: 50vh; overflow-y: auto; padding: 14px; background: #f5f3ff; }
+
+.app-settings-drawer {
+  position: fixed; top: var(--lab-bar); right: 0; bottom: 0; width: 340px; z-index: 40;
+  overflow-y: auto; padding: 12px; background: #fff; border-left: 4px solid #2563eb;
+  transform: translateX(100%); transition: transform 0.2s;
+}
+.app-settings-drawer.is-open { transform: none; }
+.app-settings-drawer-head { display: flex; gap: 6px; margin-bottom: 8px; }

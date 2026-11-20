@@ -1,0 +1,100 @@
+/* 관리자 대시보드 — 이 파일은 app-dashboard- 접두어만 쓴다 */
+.app-dashboard-root,
+.app-dashboard-root * { box-sizing: border-box; }
+
+.app-dashboard-root {
+  display: flex;
+  height: calc(100vh - var(--lab-bar));
+  background: #eef0f4;
+  font-size: 13px;
+}
+
+/* 사이드바: 고정 폭 + 자기 자신이 스크롤, 여백도 자기 padding — 스크롤바 대처 없음 */
+.app-dashboard-side {
+  flex: none;
+  width: 220px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: #1f2937;
+  color: #e5e7eb;
+  border-right: 3px solid #f59e0b;
+}
+.app-dashboard-group { margin-top: 8px; }
+.app-dashboard-group-head {
+  width: 100%; text-align: left; background: #374151; color: #fff; border: 0; padding: 6px 8px; cursor: pointer;
+}
+.app-dashboard-nav-item { padding: 6px 12px; background: #111827; margin-top: 2px; }
+
+.app-dashboard-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.app-dashboard-toolbar {
+  flex: none; height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 24px;
+  background: #fff; border-bottom: 1px solid #cbd5e1;
+}
+.app-dashboard-spacer { flex: 1; }
+
+.app-dashboard-btn { height: 26px; padding: 0 10px; border: 1px solid #94a3b8; background: #f8fafc; border-radius: 4px; cursor: pointer; }
+.app-dashboard-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* 알림 드롭다운 — absolute 팝업, 자체 스크롤 */
+.app-dashboard-dd { position: relative; }
+.app-dashboard-dd-menu {
+  position: absolute; right: 0; top: 100%; margin-top: 4px; width: 220px; max-height: 180px; overflow-y: auto;
+  background: #fff; border: 2px solid #6366f1; z-index: 20;
+}
+.app-dashboard-dd-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px dashed #c7d2fe; background: #eef2ff; }
+.app-dashboard-dd-add { display: block; width: 100%; padding: 6px 10px; background: #c7d2fe; border: 0; cursor: pointer; }
+
+/* 본문 스크롤: 스크롤 요소 자체에 padding — 스크롤바 대처 없음 */
+.app-dashboard-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+  background: #dbeafe;
+}
+.app-dashboard-widget { margin-top: 16px; background: #fff; border: 1px solid #94a3b8; }
+.app-dashboard-widget-head { padding: 8px 12px; background: #e2e8f0; font-weight: 700; cursor: pointer; user-select: none; }
+.app-dashboard-widget-body { padding: 12px; }
+.app-dashboard-actions { display: flex; gap: 6px; align-items: center; margin: 12px 0; }
+.app-dashboard-widget-body > .app-dashboard-actions:first-child { margin-top: 0; }
+
+.app-dashboard-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.app-dashboard-kpi { padding: 10px; background: #fef3c7; border: 1px solid #f59e0b; display: flex; flex-direction: column; }
+.app-dashboard-kpi b { font-size: 20px; }
+
+/* 주문 표: 스크롤 안의 스크롤. 세로 자리만 gutter 로 선점 */
+.app-dashboard-table-box {
+  max-height: 280px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  border: 2px solid #0ea5e9;
+  background: #f0f9ff;
+}
+.app-dashboard-table { border-collapse: collapse; min-width: 1100px; width: 100%; }
+.app-dashboard-table th { position: sticky; top: 0; background: #bae6fd; text-align: left; padding: 6px 10px; white-space: nowrap; }
+.app-dashboard-table td { padding: 5px 10px; border-top: 1px solid #bae6fd; white-space: nowrap; }
+
+/* 활동 로그: 스크롤바 폭을 12px 로 가정해 padding-right 하드코딩 */
+.app-dashboard-log {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 0 12px 0 0;
+  border-left: 8px solid #22c55e;
+  background: #dcfce7;
+}
+.app-dashboard-log-row { padding: 5px 10px; background: #bbf7d0; margin-bottom: 2px; }
+.app-dashboard-empty { padding: 20px; color: #666; }
+.app-dashboard-para { margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #94a3b8; }
+
+/* 서랍: fixed, 항상 스크롤바 자리 표시, 여백은 안쪽 래퍼 */
+.app-dashboard-drawer {
+  position: fixed; top: var(--lab-bar); right: 0; bottom: 0; width: 320px;
+  background: #fff; border-left: 4px solid #a855f7; z-index: 30;
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform 0.2s;
+}
+.app-dashboard-drawer.is-open { transform: none; }
+.app-dashboard-drawer-head { flex: none; display: flex; justify-content: space-between; padding: 12px 16px; background: #f3e8ff; }
+.app-dashboard-drawer-body { flex: 1; min-height: 0; overflow-y: scroll; padding: 12px 16px; background: #faf5ff; }
+.app-dashboard-drawer-item { padding: 8px; margin-top: 4px; background: #e9d5ff; }

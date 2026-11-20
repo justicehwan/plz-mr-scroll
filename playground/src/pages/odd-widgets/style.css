@@ -1,0 +1,56 @@
+.odd-widgets-root, .odd-widgets-root *, .odd-widgets-root *::before, .odd-widgets-root *::after { box-sizing: border-box; }
+.odd-widgets-root { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; height: calc(100vh - var(--lab-bar)); min-height: 640px; background: #20242c; font: 13px/1.4 system-ui, sans-serif; }
+.odd-widgets-cell { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #fff; border: 2px solid #8fa0b8; }
+.odd-widgets-cell__head { display: flex; gap: 8px; align-items: baseline; padding: 4px 8px; background: #dbe3ef; }
+.odd-widgets-cell__head small { color: #567; font-size: 11px; }
+.odd-widgets-ctl { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 8px; background: #eef2f8; }
+.odd-widgets-ctl button { font-size: 12px; }
+.odd-widgets-ctl button.on, .odd-widgets-root button.on { background: #2563eb; color: #fff; }
+.odd-widgets-body { flex: 1; min-height: 0; padding: 6px; background: #fdf6ee; }
+
+/* 1. 가상 목록 */
+.odd-widgets-vl { height: 100%; overflow-y: auto; background: #fff; border: 1px solid #99a; position: relative; }
+.odd-widgets-vl__head { position: sticky; top: 0; z-index: 2; height: 28px; display: flex; background: #cdd8ea; font-weight: bold; }
+.odd-widgets-vl__row { position: absolute; left: 0; display: flex; align-items: center; border-bottom: 1px solid #dde; background: #f4f8ff; }
+.odd-widgets-vl__head span, .odd-widgets-vl__row span { padding: 0 6px; overflow: hidden; white-space: nowrap; }
+
+/* 2. 무한 스크롤 */
+.odd-widgets-feed { height: 100%; overflow-y: auto; overscroll-behavior: contain; background: #f0ece4; border: 1px solid #99a; }
+.odd-widgets-feed__item { width: calc(100% - 20px); margin: 6px 10px; padding: 8px; background: #fff; border: 1px solid #c8b99a; }
+.odd-widgets-feed__end { padding: 10px; text-align: center; color: #876; background: #e3dccd; }
+
+/* 3. 자동완성 (BEM) */
+.odd-widgets-ac { position: relative; }
+.odd-widgets-ac__input { width: 100%; padding: 6px 8px; font-size: 14px; }
+.odd-widgets-ac__list { position: absolute; z-index: 20; top: 100%; left: 0; right: 0; max-height: 168px; margin: 0; padding: 0; overflow-y: auto; list-style: none; background: #fff; border: 1px solid #567; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
+.odd-widgets-ac__list li { padding: 4px 8px; cursor: pointer; background: #fff; }
+.odd-widgets-ac__list li.act { background: #cfe3ff; }
+.odd-widgets-ac__none { color: #999; }
+.odd-widgets-ac__help { color: #765; }
+
+/* 4. 달력·시간 */
+.odd-widgets-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; background: #fff; border: 1px solid #bbb; padding: 2px; }
+.odd-widgets-cal button { padding: 3px 0; border: 1px solid #ddd; background: #f6f6f6; }
+.odd-widgets-time { width: 52px; max-height: 200px; overflow-y: auto; text-align: center; border: 1px solid #9ab; background: #eaf4ea; }
+.odd-widgets-time div { padding: 4px 0; border-bottom: 1px solid #cdd; }
+.odd-widgets-years { position: absolute; z-index: 5; left: 0; right: 120px; top: 28px; height: 150px; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 4px; align-content: start; background: #fff; border: 2px solid #567; }
+
+/* 5. 탭 — 숨기는 방법이 패널마다 다름 */
+.odd-widgets-pn--a:not(.on) { display: none; }
+.odd-widgets-pn--b { position: absolute; inset: 0; overflow: hidden; }
+.odd-widgets-pn--b:not(.on) { visibility: hidden; }
+.odd-widgets-pn--c:not(.on) { height: 0; overflow: hidden; }
+.odd-widgets-pn--c.on { height: 100%; }
+.odd-widgets-acc__h { display: block; width: 100%; text-align: left; }
+.odd-widgets-acc__b { max-height: 0; overflow: hidden; transition: max-height 0.3s; background: #fff; border: 0 solid #bbb; }
+.odd-widgets-acc__b.open { max-height: 96px; overflow-y: auto; border-width: 1px; }
+.odd-widgets-acc__b p { margin: 0; padding: 2px 8px; }
+.odd-widgets-bg { height: calc(100% - 28px); background: #fff; border: 1px solid #99a; }
+.odd-widgets-bg div { padding: 3px 8px; border-bottom: 1px solid #eee; }
+.odd-widgets-dr__btns { display: flex; gap: 4px; height: 28px; align-items: end; }
+.odd-widgets-dr { position: absolute; top: 0; right: 0; bottom: 0; width: 60%; display: flex; flex-direction: column; background: #fff; border-left: 2px solid #345; transform: translateX(100%); transition: transform 0.25s; }
+.odd-widgets-dr.open { transform: none; }
+.odd-widgets-dr__list { flex: 1; min-height: 0; overflow-y: auto; }
+.odd-widgets-dr__list div { padding: 4px 8px; border-bottom: 1px solid #ddd; }
+.odd-widgets-free { max-height: 100%; overflow-y: auto; background: #fff; border: 1px solid #99a; }
+.odd-widgets-free p { margin: 0; padding: 4px 8px; border-bottom: 1px solid #eee; }

@@ -1,0 +1,30 @@
+/* 옛 포털 — 문서 전체에 세로 스크롤바를 항상 띄우던 방식 */
+html.page-odd-legacy { overflow-y: scroll; background: #9aa7b5; }
+
+/* 구식 전역 초기화: 이 페이지 범위에서만 */
+.odd-legacy-root * { margin: 0; padding: 0; }
+.odd-legacy-root { font: 12px/1.5 dotum, gulim, sans-serif; color: #222; padding: 12px 0; }
+.odd-legacy-root ul { list-style: none; }
+.odd-legacy-main { background: #fff; border: 1px solid #556; }
+.odd-legacy-main td { box-sizing: content-box; }
+
+.odd-legacy-clearfix:after { content: ''; display: block; clear: both; }
+.odd-legacy-title { font-weight: bold; color: #036; border-bottom: 2px solid #036; margin-bottom: 4px; }
+.odd-legacy-step input { font-size: 11px; margin-right: 2px; cursor: pointer; }
+
+.odd-legacy-gnb li { float: left; padding: 6px 16px; color: #fff; cursor: pointer; }
+
+/* 인기 검색어: li 가 float + width:100% + 패딩(content-box) → 가로로 넘침 */
+.odd-legacy-hot { height: 140px; overflow: auto; border: 1px solid #889; background: #fff; }
+.odd-legacy-hot li { float: left; width: 100%; padding: 2px 4px; border-bottom: 1px dotted #aab; }
+
+/* 공지 게시판: 세로만 auto */
+.odd-legacy-board { height: 150px; overflow-y: auto; overflow-x: hidden; border: 1px solid #ccd; }
+
+/* 속보(float:left) · 갤러리(float:right) */
+.odd-legacy-news-wrap { float: left; width: 248px; }
+.odd-legacy-news { height: 120px; overflow-y: scroll; border: 1px solid #c99; background: #fff8f8; }
+.odd-legacy-news p { padding: 0 4px; line-height: 20px; }
+.odd-legacy-gallery-wrap { float: right; width: 270px; }
+.odd-legacy-gallery { width: 268px; height: 142px; overflow-y: auto; border: 1px solid #99c; background: #f4f4ff; }
+.odd-legacy-thumb { float: left; width: 80px; height: 62px; margin: 3px; border: 1px solid #667; text-align: center; line-height: 62px; font-size: 11px; }
