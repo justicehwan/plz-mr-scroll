@@ -11,6 +11,10 @@
 - [Per-area settings](#per-area-settings) — `data-scrollbar="off"` · `"center"` · `"manual"`
 - [Recommendations](#recommendations)
 
+&nbsp;
+
+&nbsp;
+
 ## Scope — where you place the component sets the scope
 
 While it runs, it handles the scroll areas of the whole page (the entire document). So where you place it (without React, when you install and uninstall it) decides the scope.
@@ -23,6 +27,10 @@ While it runs, it handles the scroll areas of the whole page (the entire documen
 - **Gradual adoption**: This is how you turn it on for one page first and expand from there.
 - **Shared areas are included**: While it's on, it applies not only to that page's main content but also to the shared areas shown with it (sidebar, header, modals). Moving between pages with and without it can make the scrollbars in shared areas look different.
 - **No partial enablement**: There's no option yet to turn it on for only part of the page (a single container). To **exclude** part of it, use `exclude`.
+
+&nbsp;
+
+&nbsp;
 
 ## Options
 
@@ -111,6 +119,10 @@ Things to know:
 - Uninstalling that one falls back to the previous one.
 - When the options change, every area it was watching is re-evaluated.
 
+&nbsp;
+
+&nbsp;
+
 ## Per-area settings
 
 For areas where automatic detection gets it wrong, add `data-scrollbar` to the scroll element. This is the only per-area setting. Leaving it off is the default.
@@ -171,6 +183,10 @@ Things to know:
 | Horizontal works the same way | If the scroll area's own bottom padding is at least the scrollbar height, the library shrinks that padding and `--sbh` is 0. Otherwise it passes the height down as `--sbh` and doesn't float the horizontal scrollbar either |
 | Horizontal overflow caused only by the vertical scrollbar | `--sbh` is 0, because handling the vertical scrollbar makes that overflow go away too |
 | Another scroll area nested inside | The values reset to 0 inside it. The outer area's values don't leak into the inner one |
+
+&nbsp;
+
+&nbsp;
 
 ## Recommendations
 

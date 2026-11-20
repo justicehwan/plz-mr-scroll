@@ -43,6 +43,10 @@ npm install plz-mr-scroll
 
 앱 맨 위에 이 한 줄이면 된다. 화면 코드에는 아무것도 붙이지 않는다.
 
+&nbsp;
+
+&nbsp;
+
 ## 스크롤 씨의 문제
 
 스크롤 씨는 악의는 없고 매너도 없다. 내용이 길어지는 순간 예고 없이 들어와서, 멀쩡히 있던 글자와 버튼을 자기 폭만큼 옆으로 밀어낸다.
@@ -62,6 +66,10 @@ npm install plz-mr-scroll
 
 `plz-mr-scroll` 은 스크롤 씨를 내쫓지도, 대역을 세우지도 않는다. 같은 스크롤 씨에게 예절만 가르친다 — 들어서기 전에 설 자리를 먼저 찾고, 자리가 없으면 누구도 밀지 않고 조용히 가장자리에 선다.
 
+&nbsp;
+
+&nbsp;
+
 ## 신사의 예절
 
 - **밀지 않는다.** 스크롤바가 생기기 전과 후에 내용의 자리가 같다.
@@ -72,6 +80,10 @@ npm install plz-mr-scroll
 - **떠날 때 자리를 정리한다.** 바꿔 둔 여백과 표시를 되돌린다.
 
 위는 지향하는 예절이다. 신사도 못 하는 일이 있다 — [알아 둘 것](#알아-둘-것)에 적었다.
+
+&nbsp;
+
+&nbsp;
 
 ## 사용법
 
@@ -112,6 +124,10 @@ uninstall();
 - ESM(`import`)과 CommonJS(`require`) 둘 다 들어 있고, 타입 정의가 같이 온다.
 - 문서가 없는 곳(서버)에서 불러도 조용히 아무것도 하지 않는다.
 
+&nbsp;
+
+&nbsp;
+
 ## 설 자리를 찾는 순서
 
 스크롤 씨는 한 가지 방법을 모든 곳에 밀어붙이지 않는다. 스크롤바가 뜬 영역마다 구조를 보고, 위에서부터 맞는 첫 번째 자리에 선다.
@@ -131,6 +147,10 @@ uninstall();
 - 페이지 전체(브라우저 창) 스크롤, 자리를 비워 둔 영역(`scrollbar-gutter: stable`), 스크롤바를 늘 띄워 두는 영역(`overflow: scroll`)도 다룬다.
 
 방식마다의 조건과 화면에 남기는 것은 [동작 방식](./docs/ko/how-it-works.md)에 있다.
+
+&nbsp;
+
+&nbsp;
 
 ## 옵션
 
@@ -181,6 +201,10 @@ installMrScroll({ textarea: true });
 - **「바깥 여백」과 「겹치기」는 입력창에 적용되지 않는다.** 입력창에는 스크롤바를 따로 띄울 수 없기 때문이다.
 - **끄면 되돌린다.** 옵션을 끄거나 걷으면 줄여 둔 여백이 원래 값으로 돌아온다.
 
+&nbsp;
+
+&nbsp;
+
 ## 영역별 설정
 
 자동 판별이 맞지 않는 영역에만 스크롤 요소에 `data-scrollbar` 를 붙인다. 붙이지 않는 것이 기본이다.
@@ -195,6 +219,10 @@ installMrScroll({ textarea: true });
 
 쓰는 법과 주의할 점은 [설정](./docs/ko/configuration.md#영역별-설정)에 있다.
 
+&nbsp;
+
+&nbsp;
+
 ## 무엇을 했는지 보기
 
 신사는 자기가 한 일을 숨기지 않는다. `debug` 를 켜면 스크롤 영역마다 고른 방식과 까닭, 스크롤바가 선 자리, 줄이거나 더한 여백의 전·후 값이 화면 위에 그려진다.
@@ -204,6 +232,10 @@ installMrScroll({ textarea: true });
 ```
 
 읽는 법은 [문제 해결](./docs/ko/troubleshooting.md#문제-해결)에 있다. 영역들의 자리를 매 프레임 다시 재므로 개발 중에만 켠다.
+
+&nbsp;
+
+&nbsp;
 
 ## 알아 둘 것
 
@@ -219,6 +251,10 @@ installMrScroll({ textarea: true });
 
 전체 목록은 [제약사항](./docs/ko/troubleshooting.md#제약사항)에 있다.
 
+&nbsp;
+
+&nbsp;
+
 ## 브라우저 지원
 
 
@@ -230,11 +266,19 @@ installMrScroll({ textarea: true });
 
 Chromium · Firefox · WebKit 세 엔진에서 자동 테스트로 확인한다. 확인한 범위와 못 한 범위는 [검증 현황](./docs/ko/troubleshooting.md#검증-현황)에 있다.
 
+&nbsp;
+
+&nbsp;
+
 ## 문서
 
 - [동작 방식](./docs/ko/how-it-works.md) — 자리를 찾는 순서의 세부, 다시 판별하는 때, 화면에 남기는 것
 - [설정](./docs/ko/configuration.md) — 적용 범위, 옵션, 영역별 설정(`manual` 쓰는 법), 적용 시 권장사항
 - [문제 해결 · 제약사항 · 검증 현황](./docs/ko/troubleshooting.md) — 진단 표시 읽는 법, 증상별 대처, 제약 전체, 확인한 환경
+
+&nbsp;
+
+&nbsp;
 
 ## 개발
 
@@ -245,6 +289,10 @@ npm install
 npm run dev
 npm test
 ```
+
+&nbsp;
+
+&nbsp;
 
 ## 라이선스
 

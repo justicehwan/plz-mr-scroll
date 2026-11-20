@@ -10,6 +10,10 @@
 - [Limitations](#limitations) — Environment · What it leaves alone · When floating a scrollbar · Re-evaluation · Names and display · Limits of detection
 - [Verification status](#verification-status)
 
+&nbsp;
+
+&nbsp;
+
 ## Troubleshooting
 
 ### Using the debug overlay
@@ -144,6 +148,10 @@ Reasons — other:
 
 - **Fix**: Add `data-scrollbar="off"` to that area.
 
+&nbsp;
+
+&nbsp;
+
 ## Limitations
 
 ### Environment
@@ -250,6 +258,10 @@ Reasons — other:
 - Detection is an estimate based on measuring rendered sizes and padding.
 - With unusual structures it can pick the wrong method.
 - Fix those areas with [Per-area settings](./configuration.md#per-area-settings).
+
+&nbsp;
+
+&nbsp;
 
 ## Verification status
 

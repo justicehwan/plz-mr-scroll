@@ -43,6 +43,10 @@ npm install plz-mr-scroll
 
 放在应用最顶层，这一行就够了。页面代码里什么都不用加。
 
+&nbsp;
+
+&nbsp;
+
 ## 滚动条先生的问题
 
 滚动条先生没有恶意，只是没有规矩。内容一变长，他就不打招呼地闯进来，把好好待着的文字和按钮往旁边推开，推开的距离正好是他自己的宽度。
@@ -62,6 +66,10 @@ npm install plz-mr-scroll
 
 `plz-mr-scroll` 不赶走滚动条先生，也不找替身，只是教这位先生学规矩：进场之前先找好站的位置；实在没有位置，就谁也不推，安安静静站到边上。
 
+&nbsp;
+
+&nbsp;
+
 ## 绅士的礼仪
 
 - **不推人。** 滚动条出现前后，内容的位置不变。
@@ -72,6 +80,10 @@ npm install plz-mr-scroll
 - **走的时候收拾干净。** 改过的内边距和标记都会还原。
 
 以上是本库追求的礼仪。绅士也有做不到的事——写在[须知](#须知)里。
+
+&nbsp;
+
+&nbsp;
 
 ## 用法
 
@@ -112,6 +124,10 @@ uninstall();
 - 同时提供 ESM（`import`）和 CommonJS（`require`）两种产物，并附带类型定义。
 - 在没有 `document` 的环境（如服务端）中引入也不会报错，什么都不做。
 
+&nbsp;
+
+&nbsp;
+
 ## 站位顺序
 
 滚动条先生不会把同一种办法硬套到所有地方。每个出现滚动条的区域，他都会先看结构，从上往下，站到第一个合适的位置。
@@ -131,6 +147,10 @@ uninstall();
 - 整页（浏览器窗口）滚动、预留了滚动条位置的区域（`scrollbar-gutter: stable`）、始终显示滚动条的区域（`overflow: scroll`）也在处理范围内。
 
 各方式的条件，以及在页面上留下的内容，见[工作原理](./docs/zh-CN/how-it-works.md)。
+
+&nbsp;
+
+&nbsp;
 
 ## 选项
 
@@ -181,6 +201,10 @@ installMrScroll({ textarea: true });
 - **“外侧留白”和“叠放”不适用于文本框。** 因为文本框无法单独浮出滚动条。
 - **关掉就还原。** 关闭该选项或卸载后，缩小过的内边距会恢复为原值。
 
+&nbsp;
+
+&nbsp;
+
 ## 按区域设置
 
 只有自动判定不准的区域，才需要在滚动元素上加 `data-scrollbar`。默认不加。
@@ -195,6 +219,10 @@ installMrScroll({ textarea: true });
 
 用法和注意事项见[配置](./docs/zh-CN/configuration.md#按区域设置)。
 
+&nbsp;
+
+&nbsp;
+
 ## 查看它做了什么
 
 绅士从不隐瞒自己做过什么。打开 `debug` 后，每个滚动区域选用的方式和原因、滚动条所站的位置、缩小或增加的内边距的前后值，都会画在页面上。
@@ -204,6 +232,10 @@ installMrScroll({ textarea: true });
 ```
 
 读法见[问题排查](./docs/zh-CN/troubleshooting.md#问题排查)。由于每一帧都会重新测量各区域的位置，请只在开发时开启。
+
+&nbsp;
+
+&nbsp;
 
 ## 须知
 
@@ -219,6 +251,10 @@ installMrScroll({ textarea: true });
 
 完整列表见[限制](./docs/zh-CN/troubleshooting.md#限制)。
 
+&nbsp;
+
+&nbsp;
+
 ## 浏览器支持
 
 
@@ -230,11 +266,19 @@ installMrScroll({ textarea: true });
 
 在 Chromium、Firefox、WebKit 三个引擎上用自动化测试验证。已验证和未验证的范围见[验证情况](./docs/zh-CN/troubleshooting.md#验证情况)。
 
+&nbsp;
+
+&nbsp;
+
 ## 文档
 
 - [工作原理](./docs/zh-CN/how-it-works.md) — 站位顺序的细节、重新判定的时机、在页面上留下的内容
 - [配置](./docs/zh-CN/configuration.md) — 作用范围、选项、按区域设置（`manual` 的用法）、使用建议
 - [问题排查 · 限制 · 验证情况](./docs/zh-CN/troubleshooting.md) — 调试显示的读法、按症状处理、全部限制、已验证的环境
+
+&nbsp;
+
+&nbsp;
 
 ## 开发
 
@@ -245,6 +289,10 @@ npm install
 npm run dev
 npm test
 ```
+
+&nbsp;
+
+&nbsp;
 
 ## 许可证
 

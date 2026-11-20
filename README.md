@@ -43,6 +43,10 @@ npm install plz-mr-scroll
 
 Put this one line at the top of your app. Your app code needs nothing else.
 
+&nbsp;
+
+&nbsp;
+
 ## Mr. Scroll's problem
 
 Mr. Scroll means no harm, but he has no manners. The moment your content gets long, he barges in unannounced and shoves the text and buttons that were sitting there perfectly well aside by his own width.
@@ -62,6 +66,10 @@ Until now, we've kept him in line like this.
 
 `plz-mr-scroll` doesn't throw Mr. Scroll out or hire a stand-in. It just teaches the same Mr. Scroll some manners — before he steps in, he finds a place to stand, and if there's no room, he stands quietly at the edge without pushing anyone.
 
+&nbsp;
+
+&nbsp;
+
 ## A gentleman's manners
 
 - **He doesn't push.** Content sits in the same place before and after the scrollbar appears.
@@ -72,6 +80,10 @@ Until now, we've kept him in line like this.
 - **He tidies up when he leaves.** It restores the padding and markers it changed.
 
 These are the manners he aims for. Even a gentleman can't do everything — see [Things to know](#things-to-know).
+
+&nbsp;
+
+&nbsp;
 
 ## Usage
 
@@ -112,6 +124,10 @@ uninstall();
 - It ships both ESM (`import`) and CommonJS (`require`), with type definitions included.
 - Calling it where there's no document (on the server) quietly does nothing.
 
+&nbsp;
+
+&nbsp;
+
 ## Finding a place to stand
 
 Mr. Scroll doesn't force one approach everywhere. For each scroll area that shows a scrollbar, he looks at its structure and takes the first place from the top that fits.
@@ -131,6 +147,10 @@ Mr. Scroll doesn't force one approach everywhere. For each scroll area that show
 - It also handles page (browser window) scrolling, areas that reserve the scrollbar's space (`scrollbar-gutter: stable`), and areas that always show a scrollbar (`overflow: scroll`).
 
 The conditions for each method and what it leaves on the page are in [How it works](./docs/en/how-it-works.md).
+
+&nbsp;
+
+&nbsp;
 
 ## Options
 
@@ -181,6 +201,10 @@ With it on, text areas go through the same order as other scroll areas. But a sc
 - **"Outside" and "Overlay" don't apply to text areas.** A scrollbar can't be floated separately on a text area.
 - **Turning it off restores everything.** Turning the option off or uninstalling puts the shrunk padding back to its original value.
 
+&nbsp;
+
+&nbsp;
+
 ## Per-area settings
 
 Add `data-scrollbar` to the scroll element only for areas where automatic detection gets it wrong. Leaving it off is the default.
@@ -195,6 +219,10 @@ Add `data-scrollbar` to the scroll element only for areas where automatic detect
 
 How to use it and what to watch for are in [Configuration](./docs/en/configuration.md#per-area-settings).
 
+&nbsp;
+
+&nbsp;
+
 ## Seeing what it did
 
 A gentleman doesn't hide what he's done. Turn on `debug`, and for each scroll area the page shows the chosen method and the reason, where the scrollbar stands, and the before and after values of any padding it shrank or added.
@@ -204,6 +232,10 @@ A gentleman doesn't hide what he's done. Turn on `debug`, and for each scroll ar
 ```
 
 How to read it is in [Troubleshooting](./docs/en/troubleshooting.md#troubleshooting). It re-measures the position of every area on every frame, so turn it on only during development.
+
+&nbsp;
+
+&nbsp;
 
 ## Things to know
 
@@ -219,6 +251,10 @@ Even a gentleman can't do everything.
 
 The full list is in [Limitations](./docs/en/troubleshooting.md#limitations).
 
+&nbsp;
+
+&nbsp;
+
 ## Browser support
 
 
@@ -230,11 +266,19 @@ The full list is in [Limitations](./docs/en/troubleshooting.md#limitations).
 
 Tested automatically on three engines: Chromium, Firefox, and WebKit. What was and wasn't covered is in [Verification status](./docs/en/troubleshooting.md#verification-status).
 
+&nbsp;
+
+&nbsp;
+
 ## Documentation
 
 - [How it works](./docs/en/how-it-works.md) — the order for finding a place in detail, when it re-evaluates, what it leaves on the page
 - [Configuration](./docs/en/configuration.md) — scope, options, per-area settings (how to use `manual`), recommendations
 - [Troubleshooting · Limitations · Verification status](./docs/en/troubleshooting.md) — reading the debug overlay, fixes by symptom, the full list of limitations, tested environments
+
+&nbsp;
+
+&nbsp;
 
 ## Development
 
@@ -245,6 +289,10 @@ npm install
 npm run dev
 npm test
 ```
+
+&nbsp;
+
+&nbsp;
 
 ## License
 

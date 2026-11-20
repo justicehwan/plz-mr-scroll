@@ -13,6 +13,10 @@
 - [What it leaves on the page](#what-it-leaves-on-the-page)
 - [Browser support](#browser-support)
 
+&nbsp;
+
+&nbsp;
+
 ## At a glance
 
 | What it does | Details |
@@ -27,6 +31,10 @@
 | Nested areas | When a scroll area contains another one, it decides the outer one first so the two don't use the same padding |
 | Configuration | Five global options (`stayClose`, `exclude`, `debug`, `quiet`, `textarea`) and a per-area `data-scrollbar` attribute (turn off, pin a method, manual control). It works with nothing set |
 | Debug overlay | When on, draws what it did to each area on the page: the chosen method and the reason, where the scrollbar sits, the before and after values of padding it shrank or added, and where the content sits without a scrollbar |
+
+&nbsp;
+
+&nbsp;
 
 ## Detection priority
 
@@ -112,6 +120,10 @@ It's decided separately from the vertical one.
 - So if either one is floated, both original scrollbars are hidden and both are drawn as floated ones.
 - Their places are still decided per axis — the vertical one can sit outside on the right while the horizontal one overlays the content.
 
+&nbsp;
+
+&nbsp;
+
 ## Other things it does
 
 ### Areas that reserve the scrollbar's space (`scrollbar-gutter: stable`)
@@ -148,6 +160,10 @@ It's decided separately from the vertical one.
 - When a scroll area contains another one (including areas inside the page itself), it decides and applies the outer one first, then decides the inner one.
 - This keeps the inner area from reusing padding the outer area already shrank to make room for its own scrollbar.
 
+&nbsp;
+
+&nbsp;
+
 ## When it re-evaluates
 
 All areas:
@@ -164,6 +180,10 @@ Areas floated into empty space outside also watch the size of the elements aroun
 - When the space is empty again, it moves back outside.
 
 Areas that couldn't be attached outside because an animation was running are tried again when the animation ends.
+
+&nbsp;
+
+&nbsp;
 
 ## What it leaves on the page
 
@@ -189,6 +209,10 @@ Things to know:
 - Outside CSS still applies to elements with an attached shadow root (the children stay in the light DOM).
 - Because it uses inline styles, if your code sets the same property inline directly, that value is treated as the original value.
 
+&nbsp;
+
+&nbsp;
+
 ## Browser support
 
 | Feature | Requires | Without it |
@@ -203,6 +227,10 @@ Even with anchor positioning, the scrollbar may not attach in place, depending o
 - It tries again when an animation ends or the window is resized.
 
 Environments actually tested are listed in [Verification status](./troubleshooting.md#verification-status).
+
+&nbsp;
+
+&nbsp;
 
 ## References
 
