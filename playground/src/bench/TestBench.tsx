@@ -350,7 +350,7 @@ const CASES: CaseDef[] = [
   {
     title: "B11. 바깥 여백 — 사이에 낀 카드의 테두리가 아주 굵음(16px)",
     desc: "B5 와 같고 카드 테두리가 16px 다. 바깥에 띄우면 스크롤바가 내용에서 16px 떨어진다.",
-    expect: "4 겹치기 — 떨어뜨릴 거리가 한도(maxOutsideGap, 기본 12px)를 넘으므로 바깥에 띄우지 않고 내용 위에 띄운다.",
+    expect: "4 겹치기 — 떨어뜨릴 거리가 한도(stayClose, 기본 12px)를 넘으므로 바깥에 띄우지 않고 내용 위에 띄운다.",
     render: (variant, many, scroll) => (
       <div className={cn(BOX, OUTER, "p-4")}>
         <Mark className="px-4" />
@@ -667,7 +667,7 @@ const CASES: CaseDef[] = [
   {
     title: "K2. 먼 바깥 여백 — 상자 두 겹을 지나 바깥 틀의 아래 여백에 뜸",
     desc: "K 의 상자를 노란 테두리 틀(여백 없음)이 감싸고, 그 바깥 회색 틀에만 아래 여백 24px 이 있다. 세 틀의 아래 끝이 모두 맞닿아 있다.",
-    expect: "가로 스크롤바가 자기 상자(회색 테두리)와 노란 틀을 둘 다 건너, 맨 바깥 회색 틀의 아래 여백에 뜬다. 사이에 다른 요소 없이 테두리만 있으면 몇 겹이든 건넌다 — 건넌 테두리 두께의 합(1 + 4 = 5px)이 한도(maxOutsideGap, 기본 12px) 이하라서다. 한도를 넘으면 B11 처럼 내용 위에 겹친다.",
+    expect: "가로 스크롤바가 자기 상자(회색 테두리)와 노란 틀을 둘 다 건너, 맨 바깥 회색 틀의 아래 여백에 뜬다. 사이에 다른 요소 없이 테두리만 있으면 몇 겹이든 건넌다 — 건넌 테두리 두께의 합(1 + 4 = 5px)이 한도(stayClose, 기본 12px) 이하라서다. 한도를 넘으면 B11 처럼 내용 위에 겹친다.",
     render: (variant, many, scroll) => (
       <div className="bg-gray-300 pb-6">
         <div className="border-4 border-yellow-500">

@@ -16,5 +16,6 @@ export default defineConfig({
       { find: /^plz-mr-scroll$/, replacement: here(dist ? './dist/esm/index.js' : './src/index.ts') },
     ],
   },
-  server: { port: dist ? 5198 : 5199, strictPort: true, fs: { allow: [here('.')] } },
+  // 테스트용 서버만 포트를 못박는다(테스트가 그 주소를 연다). 평소에는 Vite 기본 포트를 쓴다.
+  server: { ...(dist ? { port: 5198, strictPort: true } : {}), fs: { allow: [here('.')] } },
 })

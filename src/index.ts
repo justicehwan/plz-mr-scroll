@@ -155,7 +155,7 @@ export type MrScrollOptions = {
    * 그 거리가 이 값을 넘으면 바깥에 띄우지 않고 내용 위에 겹친다. 제한을 없애려면 `Infinity` 를 준다.
    * 음수나 숫자가 아닌 값은 기본값으로 친다. 맞닿음을 1px 오차로 보므로 한도 근처에서는 1~2px 어긋날 수 있다.
    */
-  maxOutsideGap?: number;
+  stayClose?: number;
   /**
    * 진단 표시. 켜면 스크롤 영역마다 고른 방식을 `data-scrollbar-method`(세로)·`data-scrollbar-method-x`(가로)에,
    * 그 방식이 된 까닭을 `data-scrollbar-why` 에 적고, 화면 위에 따로 띄운 층에 영역마다 방식별 색의 테두리와 딱지(방식·까닭)를 그린다.
@@ -173,13 +173,24 @@ export type MrScrollOptions = {
    * 가로채면 이 장치보다 나중에 등록된 오류 리스너(오류 수집 도구 등)에 닿지 않는다. 다른 코드가 낸 같은 알림도 같이 가려지므로,
    * 그 알림을 직접 보고 싶으면 false 를 준다.
    */
-  suppressResizeObserverError?: boolean;
+  quiet?: boolean;
+  /**
+   * 입력창(`textarea`)도 볼지. 기본 false — 입력창은 높이를 내용에 맞추는 코드와 얽히기 쉬워 기본으로는 건드리지 않는다
+   * (스크롤 영역으로도, 다른 스크롤 영역을 꽉 채운 자식으로도).
+   * 켜면 다른 스크롤 영역과 같은 순서로 판별한다. 다만 입력창에는 스크롤바를 띄울 수 없어(shadow root 를 못 붙인다)
+   * 「바깥 여백」「겹치기」는 안 된다 — 오른쪽 여백이 스크롤바 폭 이상이면 그 여백을 줄이고, `data-scrollbar="manual"` 이면 폭만 내려 준다.
+   * 여백을 줄여도 상자 크기를 못 지키는 입력창(폭을 `box-sizing: content-box` 로 못박은 것 — 브라우저 기본값)은 그대로 둔다.
+   * 늘 띄워 두는 스크롤바(`overflow: scroll`)의 빈 띠는 입력창에서는 숨기지 않는다.
+   */
+  textarea?: boolean;
 };
 type Config = Required<MrScrollOptions>;
-const DEFAULTS: Config = { maxOutsideGap: 12, debug: false, exclude: "", suppressResizeObserverError: true };
+const DEFAULTS: Config = { stayClose: 12, debug: false, exclude: "", quiet: true, textarea: false };
 let config = DEFAULTS;
 /** 제외 선택자(`exclude`)에 걸린 요소이거나 그 아래에 있는가. */
 const isExcluded = (el: Element) => config.exclude !== "" && el.closest(config.exclude) !== null;
+/** 입력창은 `textarea` 옵션을 켰을 때만 본다. */
+const skipsTextarea = (el: Element) => !config.textarea && el instanceof HTMLTextAreaElement;
 /** `planWiden` 이 바깥 자리를 못 찾았을 때 그 까닭 — 진단 표시에 쓴다. 판별 한 번 안에서만 읽는다. */
 let whyNot = "";
 const no = (why: string) => {
@@ -189,6 +200,46 @@ const no = (why: string) => {
 };
 const px = (value: string) => parseFloat(value) || 0;
 const scrolls = (overflowY: string) => overflowY === "auto" || overflowY === "scroll";
+
+/**
+ * 이 여백 변경을 써도 상자가 「스크롤바가 없을 때」와 같은가 — 스크롤 요소 자신은 바깥 크기가, 그 안쪽 자식은 내용 칸의 폭이 같아야 한다.
+ * 크기를 안쪽 내용 기준(`box-sizing: content-box`)으로 못박은 상자는 여백을 줄여도 내용 칸이 안 늘고 상자만 준다 — 그런 상자에는 그 방식을 쓰지 않는다.
+ * (폭·높이를 고쳐 써서 맞추지 않는다 — 비율로 준 크기가 숫자로 굳고, 내용으로 정해지는 크기를 못박게 된다.)
+ * 그런 상자가 없으면 재지 않는다. 있으면 스크롤바를 잠깐 숨겨 재고, 변경을 잠깐 써서 다시 잰 뒤 둘 다 되돌린다.
+ */
+function keepsBox(scroller: HTMLElement, changes: StyleChange[]): boolean {
+  // 페이지 전체는 스크롤바가 창의 것이라 이렇게 잴 수 없다 — 하던 대로 둔다.
+  if (scroller === document.body) return true;
+  const padded = changes.filter(
+    ({ target, prop }) =>
+      (prop === "paddingRight" || prop === "paddingLeft" || prop === "paddingBottom") &&
+      getComputedStyle(target).boxSizing === "content-box",
+  );
+  if (padded.length === 0) return true;
+  const measure = () =>
+    padded.map(({ target, prop }) => {
+      if (target === scroller) return prop === "paddingBottom" ? target.offsetHeight : target.offsetWidth;
+      const style = getComputedStyle(target);
+
+      return target.clientWidth - px(style.paddingLeft) - px(style.paddingRight);
+    });
+  // 변경을 쓴 상태를 먼저 잰다 — 스크롤바를 숨겼다 되돌리면 그 자리에서 바로 다시 그리지 않는 엔진(WebKit)이 있다.
+  // 인라인 style 은 통째로 되돌린다 — 속성 하나씩 되돌리면 `!important` 가 떨어진다.
+  const targets = [...new Set(changes.map(({ target }) => target))];
+  const saved = targets.map((target) => target.getAttribute("style"));
+  for (const { target, prop, value } of changes) target.style[prop] = value;
+  const after = measure();
+  targets.forEach((target, index) => {
+    const style = saved[index];
+    if (style === null) target.removeAttribute("style");
+    else target.setAttribute("style", style);
+  });
+  scroller.setAttribute(NUDGE_ATTRIBUTE, "");
+  const base = measure();
+  scroller.removeAttribute(NUDGE_ATTRIBUTE);
+
+  return base.every((size, index) => Math.abs(size - after[index]) < 1);
+}
 
 /**
  * 세로 스크롤 영역인가 — 계산된 스타일로 본다(class 이름·CSS 를 어떻게 썼든 같다).
@@ -201,6 +252,7 @@ function isScroller(el: Element): el is HTMLElement {
     el !== document.documentElement &&
     !el.hasAttribute(PAGE_GHOST_ATTRIBUTE) &&
     !isExcluded(el) &&
+    !skipsTextarea(el) &&
     // 가로로만 스크롤되는 영역(세로는 hidden)도 본다.
     (scrolls(getComputedStyle(el).overflowY) || scrolls(getComputedStyle(el).overflowX))
   );
@@ -308,7 +360,8 @@ function planCenter(
       // 남는 자리가 스크롤바보다 좁다 — 왼쪽은 스크롤바가 없을 때의 빈 자리만큼 주고, 그래서 좁아진 만큼은 그 자식의 오른쪽 여백에서 뺀다.
       const shrink = (scrollbarWidth - slack) / 2;
       const childPaddingRight = px(child.paddingRight);
-      if (children.length === 1 && childPaddingRight >= shrink) {
+      // 입력창은 `textarea` 옵션을 켜야 건드린다 — 다른 영역의 자식으로 있을 때도 같다.
+      if (children.length === 1 && childPaddingRight >= shrink && !skipsTextarea(widest)) {
         return {
           changes: [
             { target: el, prop: "paddingLeft", value: `${paddingLeft + slack + shrink}px` },
@@ -331,7 +384,7 @@ function planCenter(
     // ponytail: 최대 폭에 걸린 자식은 가운데 정렬이라고 본다 — 왼쪽 정렬이면 이 구간(화면 폭 11px 범위)에서 스크롤바 폭의 절반까지 밀린다.
     const cap = child.maxWidth.endsWith("px") ? px(child.maxWidth) : Infinity;
     const gap = Math.max(0, (width + scrollbarWidth - cap) / 2);
-    if (childPaddingRight >= scrollbarWidth - gap) {
+    if (childPaddingRight >= scrollbarWidth - gap && !skipsTextarea(widest)) {
       const changes: StyleChange[] = [
         { target: widest, prop: "paddingRight", value: `${childPaddingRight - scrollbarWidth + gap}px` },
       ];
@@ -358,7 +411,13 @@ function widen(target: HTMLElement, by: number): StyleChange[] {
   const containerWidth = container.clientWidth - px(style.paddingLeft) - px(style.paddingRight);
   // 폭이 부모를 꽉 채운 요소는 폭이 100% 로 고정돼 있을 수 있다 — 음수 마진만으로는 안 넓어지니 폭도 같이 준다.
   if (Math.abs(target.offsetWidth - containerWidth) <= 1) {
-    changes.push({ target, prop: "width", value: `calc(100% + ${by}px)` });
+    // 폭이 안쪽 내용 기준(content-box)이면 여백·테두리가 그 밖에 더해진다 — 그만큼 빼야 바깥 폭이 `by` 만큼만 는다.
+    const own = getComputedStyle(target);
+    const outside =
+      own.boxSizing === "content-box"
+        ? px(own.paddingLeft) + px(own.paddingRight) + px(own.borderLeftWidth) + px(own.borderRightWidth)
+        : 0;
+    changes.push({ target, prop: "width", value: `calc(100% + ${by - outside}px)` });
   }
 
   return changes;
@@ -470,7 +529,7 @@ function planWiden(
     if (room >= scrollbarWidth) {
       const offset = edge - right;
       // 건넌 테두리가 너무 두꺼우면 쓰지 않는다 — 스크롤바가 자기 영역에서 떨어져 보인다.
-      if (offset > config.maxOutsideGap) return no("outside-gap-over-limit");
+      if (offset > config.stayClose) return no("outside-gap-over-limit");
       // 이 여백도 나중에 차거나 빌 수 있다(닫기 버튼이 뜨고 사라짐) — 빈 자리와 같이 그 틀과 자식들을 지켜본다.
       const watch = [parent, ...parent.children];
       // 여백 안, 스크롤바가 놓일 자리에 다른 요소(닫기 버튼 등)가 떠 있으면 쓰지 않는다 — 띄운 스크롤바가 그 요소를 덮고 누름을 가로챈다.
@@ -644,7 +703,7 @@ function hasRoomBelow(
     }
     if (paddingBottom >= height) {
       const offset = edge - bottom;
-      if (offset > config.maxOutsideGap) return null;
+      if (offset > config.stayClose) return null;
       const watch = [parent, ...parent.children];
 
       // 아래 여백 안, 스크롤바가 놓일 자리에 다른 요소가 떠 있으면 쓰지 않는다.
@@ -665,13 +724,12 @@ function planNormal(el: HTMLElement, scrollbarWidth: number, floats = false): Pl
   const style = getComputedStyle(el);
   const paddingRight = px(style.paddingRight);
   if (paddingRight >= scrollbarWidth) {
-    const value = `${paddingRight - scrollbarWidth}px`;
-
-    return { ...NONE, method: "padding", changes: [{ target: el, prop: "paddingRight", value }] };
+    const changes: StyleChange[] = [{ target: el, prop: "paddingRight", value: `${paddingRight - scrollbarWidth}px` }];
+    if (keepsBox(el, changes)) return { ...NONE, method: "padding", changes };
   }
   if (mode === "manual") return { ...NONE, method: "manual", manualWidth: scrollbarWidth };
   const center = planCenter(el, scrollbarWidth, mode !== "center");
-  if (center) {
+  if (center && keepsBox(el, center.changes)) {
     return center.overlay
       ? { ...NONE, ...center, method: "overlay", why: "center-too-narrow" }
       : { ...NONE, ...center, method: "center" };
@@ -766,7 +824,8 @@ function planFor(el: HTMLElement, scrollbarWidth: number, measuredHeight: number
   const mode = el.dataset.scrollbar;
   if (mode === "off") return { ...NONE, why: "off" };
   // 찾은 뒤에 제외 선택자에 걸리게 된 영역(class 가 바뀜, 설정이 바뀜)도 여기서 걸러 손대지 않는다.
-  if (isExcluded(el)) return { ...NONE, why: "excluded" };
+  // 보던 입력창도 `textarea` 옵션이 꺼지면 같은 길로 손을 뗀다.
+  if (isExcluded(el) || skipsTextarea(el)) return { ...NONE, why: "excluded" };
   // 굴릴 것이 없는데 스크롤바가 재진다 — 늘 띄워 두는 설정(overflow: scroll)의 빈 띠다. 어느 방식으로 받을 구조든 띠만 숨긴다
   // (여백을 줄여 받는 구조도 마찬가지다 — 띠를 숨기면 내용 폭이 넘칠 때와 같아진다).
   // 서로 때문에만 생긴 넘침(가로 스크롤바 높이만큼의 세로 넘침, 세로 스크롤바 폭만큼의 가로 넘침)은 넘침으로 치지 않는다.
@@ -774,10 +833,12 @@ function planFor(el: HTMLElement, scrollbarWidth: number, measuredHeight: number
   const box = el === document.body ? document.documentElement : el;
   const overflows =
     box.scrollHeight - box.clientHeight > measuredHeight + 1 || box.scrollWidth - box.clientWidth > scrollbarWidth + 1;
+  // 입력창은 뺀다 — 글이 바뀌어 넘치게 돼도(값만 바뀐다) 알아챌 길이 없어, 숨긴 스크롤바가 그대로 남는다.
   if (
     !overflows &&
     (scrollbarWidth > 0 || measuredHeight > 0) &&
     mode !== "manual" &&
+    !(el instanceof HTMLTextAreaElement) &&
     !String(getComputedStyle(box).scrollbarGutter).includes("stable")
   ) {
     return { ...NONE, hidden: true, method: "none", why: "nothing-to-scroll" };
@@ -798,9 +859,8 @@ function planFor(el: HTMLElement, scrollbarWidth: number, measuredHeight: number
   const paddingBottom = px(style.paddingBottom);
   // 세로가 원래 스크롤바를 쓰는 방식이면 가로도 원래 스크롤바로 아래 여백 안에 받는다.
   if (paddingBottom >= scrollbarHeight && !vertical.overlay) {
-    const value = `${paddingBottom - scrollbarHeight}px`;
-
-    return { ...vertical, methodX: "padding", changes: [...vertical.changes, { target: el, prop: "paddingBottom", value }] };
+    const change: StyleChange = { target: el, prop: "paddingBottom", value: `${paddingBottom - scrollbarHeight}px` };
+    if (keepsBox(el, [change])) return { ...vertical, methodX: "padding", changes: [...vertical.changes, change] };
   }
   if (manual) return { ...vertical, methodX: "manual", manualHeight: scrollbarHeight };
   if (!floats) return vertical;
@@ -1396,8 +1456,7 @@ function start() {
   // 폭이 내용 크기로 정해지는 스크롤 요소는 스크롤바가 바뀌어도 내용 폭이 그대로고 바깥 폭이 바뀐다.
   const borderObserver = new ResizeObserver(onResize);
   const observe = (el: Element) => {
-    // ponytail: textarea 는 뺀다(입력창 높이 계산과 얽힘).
-    if (el instanceof HTMLTextAreaElement || observed.has(el)) return;
+    if (observed.has(el)) return;
     observed.add(el);
     contentObserver.observe(el);
     borderObserver.observe(el, { box: "border-box" });
@@ -1571,7 +1630,7 @@ function start() {
   // 다음 프레임으로 미루면 이벤트는 없지만 한 프레임 밀려 보여서 미루지 않고, 이 이벤트만 나중에 등록된 리스너에 닿지 않게 막는다.
   // 캡처 단계라 이미지·스크립트 로드 실패 이벤트(message 가 없는 일반 Event)도 여기로 온다 — 문구가 있는 것만 본다.
   const swallowLoopError = (event: Event) => {
-    if (!config.suppressResizeObserverError) return;
+    if (!config.quiet) return;
     const message: unknown = "message" in event ? event.message : undefined;
     if (typeof message === "string" && message.startsWith(LOOP_ERROR)) event.stopImmediatePropagation();
   };
@@ -1849,13 +1908,14 @@ export function installMrScroll(options: MrScrollOptions = {}): () => void {
   ) {
     return () => {};
   }
-  const gap = options.maxOutsideGap;
+  const gap = options.stayClose;
   const mine: Config = {
     // 음수·숫자가 아닌 값은 쓸 수 없다 — 기본값으로 친다(`Infinity` 는 「한도 없음」이라 받는다).
-    maxOutsideGap: typeof gap === "number" && gap >= 0 ? gap : DEFAULTS.maxOutsideGap,
+    stayClose: typeof gap === "number" && gap >= 0 ? gap : DEFAULTS.stayClose,
     debug: options.debug ?? DEFAULTS.debug,
     exclude: validSelector(options.exclude ?? DEFAULTS.exclude),
-    suppressResizeObserverError: options.suppressResizeObserverError ?? DEFAULTS.suppressResizeObserverError,
+    quiet: options.quiet ?? DEFAULTS.quiet,
+    textarea: options.textarea ?? DEFAULTS.textarea,
   };
   installed.push(mine);
   config = mine;

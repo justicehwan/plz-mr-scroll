@@ -211,7 +211,7 @@ test('페이지 전체 — 스크롤바를 늘 띄우는 페이지도 굴릴 것
 })
 
 for (const gap of [undefined, 40]) {
-  test(`옵션 maxOutsideGap — ${gap === undefined ? '기본값(12px)이면 16px 떨어진 자리에는 안 띄운다' : '40 으로 주면 16px 떨어진 자리에도 띄운다'}`, async ({ page, browserName }) => {
+  test(`옵션 stayClose — ${gap === undefined ? '기본값(12px)이면 16px 떨어진 자리에는 안 띄운다' : '40 으로 주면 16px 떨어진 자리에도 띄운다'}`, async ({ page, browserName }) => {
     test.skip(browserName === 'firefox', '이 페이지의 스크롤바 폭 강제(::-webkit-scrollbar)가 안 먹는다')
     await page.goto(url('app-settings', true, 11) + (gap === undefined ? '' : `&gap=${gap}`))
     await page.waitForTimeout(600)
@@ -229,7 +229,7 @@ for (const gap of [undefined, 40]) {
       if (!bar || getComputedStyle(bar).display === 'none') return '없음'
       return bar.getBoundingClientRect().left >= el.getBoundingClientRect().right - 0.5 ? '바깥' : '안쪽'
     })
-    console.log(`[gap] ${browserName} maxOutsideGap=${gap ?? '기본'} → ${where}`)
+    console.log(`[gap] ${browserName} stayClose=${gap ?? '기본'} → ${where}`)
     expect(where).toBe(gap === undefined ? '안쪽' : '바깥')
   })
 }
@@ -241,8 +241,8 @@ test('옵션 exclude — 선택자에 걸린 구역 아래는 건드리지 않�
     host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;display:flex;gap:40px;background:#fff;padding:20px'
     // 외부 위젯(마크업에 손댈 수 없다고 치는 구역) 안의 스크롤 영역과, 같은 구조의 바깥 영역
     host.innerHTML =
-      '<div class="third-party"><div><div id="in-widget" style="width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">위젯 안</div></div></div></div>' +
-      '<div id="plain" style="width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">바깥</div></div>'
+      '<div class="third-party"><div><div id="in-widget" style="box-sizing:border-box;width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">위젯 안</div></div></div></div>' +
+      '<div id="plain" style="box-sizing:border-box;width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">바깥</div></div>'
     document.body.appendChild(host)
   }
   const read = () =>
@@ -284,7 +284,7 @@ test('React 없이 — installMrScroll() 로 설치하고, 돌려받은 함수�
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
     const host = document.createElement('div')
     host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;background:#fff;padding:20px'
-    host.innerHTML = '<div id="vanilla" style="width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">내용</div></div>'
+    host.innerHTML = '<div id="vanilla" style="box-sizing:border-box;width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">내용</div></div>'
     document.body.appendChild(host)
     const el = document.getElementById('vanilla')!
     const pad = () => getComputedStyle(el).paddingRight
@@ -318,7 +318,7 @@ test('본체 파일은 React 를 불러오지 않는다', async ({ page }) => {
 })
 
 for (const suppress of [true, false]) {
-  test(`옵션 suppressResizeObserverError — ${suppress ? '기본값이면 브라우저 알림이 나중에 등록된 리스너에 닿지 않는다' : 'false 면 닿는다'}`, async ({ page, browserName }) => {
+  test(`옵션 quiet — ${suppress ? '기본값이면 브라우저 알림이 나중에 등록된 리스너에 닿지 않는다' : 'false 면 닿는다'}`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', '알림이 나는 시점이 엔진마다 달라 Chromium 에서만 본다')
     await page.goto(url('app-dashboard', true, 11) + (suppress ? '' : '&suppress=0'))
     await page.waitForTimeout(600)
@@ -369,7 +369,7 @@ test('옵션 exclude — 바깥 스크롤 영역이 제외한 구역의 여백�
   expect.soft(out, '제외한 구역의 여백을 바깥 영역이 건드림').toEqual({ pad: '20px', marks: 0 })
 })
 
-test('옵션 maxOutsideGap — 음수처럼 쓸 수 없는 값은 기본값으로 친다', async ({ page, browserName }) => {
+test('옵션 stayClose — 음수처럼 쓸 수 없는 값은 기본값으로 친다', async ({ page, browserName }) => {
   test.skip(browserName === 'firefox', '이 페이지의 스크롤바 폭 강제(::-webkit-scrollbar)가 안 먹는다')
   await page.goto(url('app-settings', true, 11) + '&gap=-5')
   await page.waitForTimeout(500)
@@ -397,7 +397,7 @@ test('설치 — 쓸 수 없는 환경에서는 조용히 아무것도 하지 �
     const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
     const host = document.createElement('div')
     host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;background:#fff;padding:20px'
-    host.innerHTML = '<div id="guard" style="width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">내용</div></div>'
+    host.innerHTML = '<div id="guard" style="box-sizing:border-box;width:200px;height:100px;overflow-y:auto;padding:0 16px"><div style="height:400px">내용</div></div>'
     document.body.appendChild(host)
     const el = document.getElementById('guard')!
     const pad = () => getComputedStyle(el).paddingRight
@@ -430,4 +430,180 @@ test('설치 — 쓸 수 없는 환경에서는 조용히 아무것도 하지 �
   expect.soft(out.unsupported, '쓸 수 없는 환경에서는 아무것도 하지 않는다').toBe('16px')
   expect.soft(out.installed, '그 뒤의 설치는 정상으로 돈다').toBe('5px')
   expect.soft(out.removed, '그 뒤의 걷기가 장치를 멈추고 되돌린다').toBe('16px')
+})
+
+test('옵션 textarea — 켜야 입력창을 보고, 여백이 충분한 입력창은 그 여백을 줄여 글자 폭을 지킨다', async ({ page, browserName }) => {
+  // Firefox 는 이 페이지의 스크롤바 폭 강제(::-webkit-scrollbar)가 안 먹어 기본 폭(15px)으로 돈다 — 폭은 재서 쓴다.
+  await page.goto(url('app-settings', false, 11))
+  await page.waitForTimeout(500)
+  const out = await page.evaluate(async (path) => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    const host = document.createElement('div')
+    host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;background:#fff;padding:20px'
+    // wide: 오른쪽 여백(16px)이 스크롤바(11~15px)보다 넓다. tight: 여백(4px)이 스크롤바보다 좁다.
+    host.innerHTML =
+      '<textarea id="wide" style="box-sizing:border-box;display:block;width:240px;height:80px;padding:8px 16px;border:1px solid #999;resize:none;overflow-y:auto"></textarea>' +
+      '<textarea id="tight" style="box-sizing:border-box;display:block;width:240px;height:80px;padding:4px;border:1px solid #999;resize:none;overflow-y:auto"></textarea>' +
+      // 크기를 안쪽 내용 기준(content-box)으로 못박은 상자 — 여백을 줄이면 상자가 준다. 상자 크기는 그대로여야 하고, 폭·높이를 고쳐 쓰지도 않는다.
+      '<textarea id="cbta" style="box-sizing:content-box;display:block;width:240px;height:80px;padding:8px 16px;border:1px solid #999;resize:none;overflow-y:auto"></textarea>' +
+      '<div id="cbdiv" style="box-sizing:content-box;width:240px;height:80px;padding:8px 16px;border:1px solid #999;overflow-y:auto"><div id="cbin" style="height:20px">내용</div></div>' +
+      // 가로·세로 둘 다 넘치는 content-box 상자 — 아래 여백(16px)도 줄이므로 높이도 지켜야 한다.
+      '<div id="cbxy" style="box-sizing:content-box;width:240px;height:80px;padding:8px 16px 16px;border:1px solid #999;overflow:auto"><div id="cbxyin" style="width:100px;height:20px">내용</div></div>'
+    document.body.appendChild(host)
+    const wide = document.getElementById('wide') as HTMLTextAreaElement
+    const tight = document.getElementById('tight') as HTMLTextAreaElement
+    const errors: string[] = []
+    window.addEventListener('error', (e) => { if (!String(e.message).includes('ResizeObserver')) errors.push(String(e.message)) })
+    const read = (el: HTMLTextAreaElement) => {
+      const s = getComputedStyle(el)
+      // 글자가 놓이는 폭 — 이 값이 같으면 줄바꿈이 그대로다.
+      return { pad: s.paddingRight, text: el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight), shadow: !!el.shadowRoot }
+    }
+    const cbta = document.getElementById('cbta') as HTMLTextAreaElement
+    const cbdiv = document.getElementById('cbdiv') as HTMLElement
+    const cbxy = document.getElementById('cbxy') as HTMLElement
+    // 인라인으로 적힌 크기·여백 — 걷은 뒤 처음과 같아야 한다.
+    const inline = (el: HTMLElement) => [el.style.width, el.style.height, el.style.paddingRight, el.style.paddingBottom].join(' / ')
+    const box = (el: HTMLElement) => {
+      const s = getComputedStyle(el)
+      return {
+        pad: s.paddingRight, padBottom: s.paddingBottom, outer: el.offsetWidth, outerH: el.offsetHeight,
+        text: el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight), textH: el.clientHeight - parseFloat(s.paddingTop) - parseFloat(s.paddingBottom),
+      }
+    }
+    const fill = (on: boolean) => {
+      for (const el of [wide, tight, cbta]) el.value = on ? Array.from({ length: 30 }, (_, i) => `줄 ${i}`).join('\n') : ''
+      document.getElementById('cbin')!.style.height = on ? '400px' : '20px'
+      document.getElementById('cbxyin')!.style.cssText = on ? 'width:600px;height:400px' : 'width:100px;height:20px'
+    }
+    const empty = { wide: read(wide), tight: read(tight) }
+    const contentBox: Record<string, any> = { 빈상태: { ta: box(cbta), div: box(cbdiv), xy: box(cbxy) }, 원래: { ta: inline(cbta), div: inline(cbdiv), xy: inline(cbxy) } }
+    const core = await import(/* @vite-ignore */ path)
+    // 1) 기본값 — 입력창은 보지 않는다.
+    const offDefault = core.installMrScroll()
+    fill(true); await wait(300)
+    const off = { wide: read(wide), tight: read(tight) }
+    // 이 브라우저에서 실제로 뜬 스크롤바 폭.
+    const sb = wide.offsetWidth - wide.clientWidth - 2
+    offDefault(); fill(false); await wait(200)
+    // 2) 켠다.
+    const uninstall = core.installMrScroll({ textarea: true, debug: true })
+    fill(true); await wait(400)
+    const on = { wide: { ...read(wide), method: wide.getAttribute('data-scrollbar-method') }, tight: { ...read(tight), method: tight.getAttribute('data-scrollbar-method'), why: tight.getAttribute('data-scrollbar-why') } }
+    contentBox.켠상태 = { ta: box(cbta), div: box(cbdiv), xy: box(cbxy) }
+    contentBox.켠인라인 = { ta: inline(cbta), div: inline(cbdiv), xy: inline(cbxy) }
+    fill(false); await wait(300)
+    const back = { wide: read(wide), tight: read(tight) }
+    fill(true); await wait(300)
+    uninstall(); await wait(200)
+    contentBox.걷은뒤 = { ta: inline(cbta), div: inline(cbdiv), xy: inline(cbxy) }
+    const after = { wide: read(wide), marks: [...wide.attributes, ...tight.attributes].filter((a) => a.name.startsWith('data-scrollbar')).length }
+    host.remove()
+    return { empty, off, on, back, after, errors, contentBox, sb }
+  }, CORE)
+  console.log(`[textarea] ${browserName} ${JSON.stringify(out)}`)
+  expect.soft(out.errors, '오류 없음').toEqual([])
+  expect.soft(out.empty.wide.pad).toBe('16px')
+  expect.soft(out.off.wide.pad, '기본값이면 입력창을 건드리지 않는다').toBe('16px')
+  expect(out.sb, '스크롤바가 폭을 차지한다').toBeGreaterThan(0)
+  const reduced = `${16 - out.sb}px`
+  expect.soft(out.off.wide.text, '기본값이면 스크롤바 폭만큼 글자 폭이 준다').toBe(out.empty.wide.text - out.sb)
+  expect.soft(out.on.wide, '켜면 여백을 스크롤바 폭만큼 줄이고 글자 폭은 그대로다').toMatchObject({ pad: reduced, text: out.empty.wide.text, method: 'padding', shadow: false })
+  expect.soft(out.on.tight, '여백이 스크롤바보다 좁으면 손대지 않는다').toMatchObject({ pad: '4px', shadow: false })
+  expect.soft(out.back.wide, '스크롤바가 사라지면 되돌아온다').toMatchObject({ pad: '16px', text: out.empty.wide.text })
+  const { 빈상태: none, 켠상태: on, 켠인라인: written, 걷은뒤: left, 원래: orig } = out.contentBox
+  for (const key of ['ta', 'div', 'xy'] as const) {
+    expect.soft(on[key], `content-box ${key} — 상자 크기가 그대로다`).toMatchObject({ outer: none[key].outer, outerH: none[key].outerH })
+    expect.soft(written[key], `content-box ${key} — 폭·높이·여백을 고쳐 쓰지 않는다`).toBe(orig[key])
+    expect.soft(left[key], `content-box ${key} — 걷은 뒤에도 처음과 같다`).toBe(orig[key])
+  }
+  // 입력창은 스크롤바를 띄울 수 없어 그대로 밀린다. 보통 상자는 스크롤바를 띄워 받으므로 내용 자리가 그대로다.
+  expect.soft(on.ta.text, 'content-box 입력창 — 받지 못해 스크롤바 폭만큼 밀린다').toBe(none.ta.text - out.sb)
+  expect.soft(on.div, 'content-box 상자 — 내용 자리가 그대로다').toMatchObject({ text: none.div.text })
+  expect.soft(on.xy, 'content-box 가로·세로 — 내용 자리가 그대로다').toMatchObject({ text: none.xy.text, textH: none.xy.textH })
+  expect.soft(out.after, '걷으면 되돌린다').toMatchObject({ wide: { pad: '16px' }, marks: 0 })
+})
+
+test('상자 크기를 굳히지 않는다 — 내용·비율로 정해지는 크기, 꽉 찬 자식, 넓히기, 입력창', async ({ page, browserName }) => {
+  await page.goto(url('app-settings', false, 11))
+  await page.waitForTimeout(500)
+  const out = await page.evaluate(async (path) => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    const host = document.createElement('div')
+    host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;width:700px;background:#fff;padding:20px'
+    host.innerHTML =
+      // 1) 높이가 내용으로 정해지는 상자 — 가로 스크롤바가 생겨도 높이를 숫자로 굳히지 않는다.
+      '<pre id="pre" style="box-sizing:content-box;overflow-x:auto;overflow-y:hidden;padding:16px;margin:0;width:300px;font:14px/16px monospace;border:1px solid #999">short</pre>' +
+      // 2) 폭을 비율로 준 상자 — 감싼 틀이 줄면 따라 준다.
+      '<div id="pc" style="width:600px"><div id="pct" style="box-sizing:content-box;width:50%;height:100px;overflow-y:auto;padding:0 20px;border:1px solid #999"><div id="pctin" style="height:20px">x</div></div></div>' +
+      // 4) 폭을 꽉 채운 content-box 자식 — 자식의 글자 폭이 그대로다.
+      '<div id="fs" style="box-sizing:border-box;width:300px;height:100px;overflow-y:auto;border:1px solid #999"><div id="fc" style="box-sizing:content-box;width:calc(100% - 40px);padding:0 20px">text<div id="fg" style="height:20px"></div></div></div>' +
+      // 5) 넓히기 예비 방식 — 스크롤바를 띄울 수 없는 content-box 목록을 스크롤바 폭만큼만 넓힌다.
+      '<div id="uw" style="box-sizing:border-box;width:400px;padding-right:40px"><ul id="ul" style="box-sizing:content-box;overflow-y:auto;max-height:100px;margin:0;padding-left:40px;list-style:none"><li>item</li></ul></div>' +
+      // 6) 옵션을 안 켰는데 스크롤 영역을 꽉 채운 입력창 — 입력창의 여백을 건드리지 않는다.
+      '<div id="ts" style="box-sizing:border-box;width:300px;height:120px;overflow-y:auto;border:1px solid #999"><div><textarea id="tc" style="box-sizing:border-box;display:block;width:100%;height:60px;padding:8px 16px;overflow:hidden;resize:none"></textarea></div></div>' +
+      // 7) 스크롤바를 늘 띄우는 입력창 — 코드로 글을 넣어도 스크롤바가 숨은 채 남지 않는다.
+      '<textarea id="as" style="box-sizing:border-box;display:block;width:240px;height:80px;padding:4px 16px;border:1px solid #999;overflow-y:scroll;resize:none"></textarea>'
+    document.body.appendChild(host)
+    const $ = (id: string) => document.getElementById(id) as HTMLElement
+    const textWidth = (el: HTMLElement) => { const s = getComputedStyle(el); return el.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight) }
+    const errors: string[] = []
+    window.addEventListener('error', (e) => { if (!String(e.message).includes('ResizeObserver')) errors.push(String(e.message)) })
+    const base = { pre: $('pre').offsetHeight, fc: textWidth($('fc')), ul: $('ul').offsetWidth, tcPad: getComputedStyle($('tc')).paddingRight }
+    const core = await import(/* @vite-ignore */ path)
+    const uninstall = core.installMrScroll()
+    await wait(200)
+    // 스크롤바를 만든다.
+    $('pre').textContent = 'x'.repeat(200)
+    $('pctin').style.height = '400px'
+    $('fg').style.height = '400px'
+    $('ul').innerHTML = '<li>item</li>'.repeat(30)
+    $('tc').style.height = '300px'
+    await wait(500)
+    // 이 브라우저의 스크롤바 폭 — 장치가 건드리지 않는 상자로 잰다.
+    const probe = document.createElement('div')
+    probe.setAttribute('data-scrollbar', 'off')
+    probe.style.cssText = 'width:100px;height:50px;overflow-y:scroll'
+    host.appendChild(probe)
+    const sb = probe.offsetWidth - probe.clientWidth
+    probe.remove()
+    const first = {
+      pre: { height: $('pre').offsetHeight, inline: $('pre').style.height, method: $('pre').getAttribute('data-scrollbar-method-x') },
+      pct: { width: $('pct').offsetWidth, inline: $('pct').style.width },
+      fc: textWidth($('fc')),
+      ul: $('ul').offsetWidth,
+      tcPad: getComputedStyle($('tc')).paddingRight,
+    }
+    // 1) 줄이 늘면 높이가 따라 는다.  2) 감싼 틀을 줄이면 폭이 따라 준다.
+    $('pre').textContent = ('x'.repeat(200) + '\n').repeat(3)
+    $('pc').style.width = '400px'
+    await wait(500)
+    const second = { pre: $('pre').offsetHeight, pct: $('pct').offsetWidth }
+    uninstall()
+    await wait(200)
+    // 7) 입력창 옵션을 켜고, 늘 띄우는 스크롤바의 입력창에 코드로 글을 넣는다.
+    const as = $('as') as HTMLTextAreaElement
+    const off = core.installMrScroll({ textarea: true })
+    await wait(300)
+    const emptyText = textWidth(as)
+    as.value = Array.from({ length: 30 }, (_, i) => `줄 ${i}`).join('\n')
+    await wait(500)
+    const always = { emptyText, text: textWidth(as), bar: as.offsetWidth - as.clientWidth - 2, hidden: as.hasAttribute('data-scrollbar-overlay') }
+    off()
+    host.remove()
+    return { base, first, second, always, sb, errors }
+  }, CORE)
+  console.log(`[boxes] ${browserName} ${JSON.stringify(out)}`)
+  expect.soft(out.errors, '오류 없음').toEqual([])
+  expect.soft(out.first.pre, '1) 높이가 내용으로 정해지는 상자 — 스크롤바가 생겨도 높이가 그대로고, 숫자로 굳히지 않는다').toMatchObject({ height: out.base.pre, inline: '' })
+  expect.soft(out.second.pre, '1) 줄이 늘면 높이가 따라 는다').toBe(out.base.pre + 32)
+  expect.soft(out.first.pct, '2) 비율로 준 폭 — 숫자로 굳히지 않는다').toMatchObject({ width: 342, inline: '50%' })
+  expect.soft(out.second.pct, '2) 감싼 틀을 줄이면 폭이 따라 준다').toBe(242)
+  expect.soft(out.first.fc, '4) 꽉 찬 content-box 자식 — 글자 폭이 그대로다').toBe(out.base.fc)
+  expect(out.sb, '스크롤바가 폭을 차지한다').toBeGreaterThan(0)
+  expect.soft(out.first.ul, '5) 넓히기 — 스크롤바 폭만큼만 넓힌다').toBe(out.base.ul + out.sb)
+  expect.soft(out.first.tcPad, '6) 옵션을 안 켜면 꽉 찬 자식인 입력창의 여백을 건드리지 않는다').toBe(out.base.tcPad)
+  expect.soft(out.always.hidden, '7) 늘 띄우는 입력창 — 스크롤바를 숨기지 않는다').toBe(false)
+  expect.soft(out.always.bar, '7) 늘 띄우는 입력창 — 스크롤바가 보인다').toBe(out.sb)
+  expect.soft(out.always.text, '7) 늘 띄우는 입력창 — 글이 늘어도 글자 폭이 그대로다').toBe(out.always.emptyText)
 })

@@ -11,10 +11,10 @@ import { installMrScroll, type MrScrollOptions } from "./index.js";
 
 export type { MrScrollOptions };
 
-export function MrScroll({ maxOutsideGap, debug, exclude, suppressResizeObserverError }: MrScrollOptions): null {
+export function MrScroll({ stayClose, debug, exclude, quiet, textarea }: MrScrollOptions): null {
   useEffect(
-    () => installMrScroll({ maxOutsideGap, debug, exclude, suppressResizeObserverError }),
-    [maxOutsideGap, debug, exclude, suppressResizeObserverError],
+    () => installMrScroll({ stayClose, debug, exclude, quiet, textarea }),
+    [stayClose, debug, exclude, quiet, textarea],
   );
 
   return null;

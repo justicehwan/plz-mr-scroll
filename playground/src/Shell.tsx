@@ -3,7 +3,7 @@ import { MrScroll } from 'plz-mr-scroll/react'
 import { pages } from './registry'
 import './shell.css'
 
-type State = { page: string; lib: boolean; sb: number; notes: boolean; gap?: number; debug?: boolean; exclude?: string; suppress?: boolean }
+type State = { page: string; lib: boolean; sb: number; notes: boolean; gap?: number; debug?: boolean; exclude?: string; suppress?: boolean; textarea?: boolean }
 
 function read(): State {
   const q = new URLSearchParams(location.hash.slice(1))
@@ -19,6 +19,8 @@ function read(): State {
     exclude: q.get('exclude') ?? undefined,
     // suppress=0 이면 브라우저의 ResizeObserver 알림을 가로채지 않는다.
     suppress: q.get('suppress') === '0' ? false : undefined,
+    // textarea=1 이면 입력창도 본다.
+    textarea: q.get('textarea') === '1' || undefined,
   }
 }
 
@@ -30,7 +32,7 @@ export function Shell() {
   const [state, setState] = useState(read)
   const update = (patch: Partial<State>) => {
     const next = { ...state, ...patch }
-    location.hash = `page=${next.page}&lib=${next.lib ? 1 : 0}&sb=${next.sb}&notes=${next.notes ? 1 : 0}${next.gap === undefined ? '' : `&gap=${next.gap}`}${next.debug ? '&debug=1' : ''}${next.exclude ? `&exclude=${encodeURIComponent(next.exclude)}` : ''}${next.suppress === false ? '&suppress=0' : ''}`
+    location.hash = `page=${next.page}&lib=${next.lib ? 1 : 0}&sb=${next.sb}&notes=${next.notes ? 1 : 0}${next.gap === undefined ? '' : `&gap=${next.gap}`}${next.debug ? '&debug=1' : ''}${next.exclude ? `&exclude=${encodeURIComponent(next.exclude)}` : ''}${next.suppress === false ? '&suppress=0' : ''}${next.textarea ? '&textarea=1' : ''}`
     setState(next)
   }
   useEffect(() => {
@@ -56,7 +58,7 @@ export function Shell() {
 
   return (
     <>
-      {state.lib && <MrScroll maxOutsideGap={state.gap} debug={state.debug} exclude={state.exclude} suppressResizeObserverError={state.suppress} />}
+      {state.lib && <MrScroll stayClose={state.gap} debug={state.debug} exclude={state.exclude} quiet={state.suppress} textarea={state.textarea} />}
       <div className="lab-bar" data-scrollbar="off">
         <select value={current.meta.id} onChange={(e) => update({ page: e.target.value })}>
           {pages.map((p) => (
@@ -86,6 +88,10 @@ export function Shell() {
         <label className={state.debug ? 'lab-check on' : 'lab-check'}>
           <input type="checkbox" checked={!!state.debug} onChange={(e) => update({ debug: e.target.checked || undefined })} />
           진단 표시 — 지금 {state.debug ? '켜짐' : '꺼짐'}
+        </label>
+        <label className={state.textarea ? 'lab-check on' : 'lab-check'}>
+          <input type="checkbox" checked={!!state.textarea} onChange={(e) => update({ textarea: e.target.checked || undefined })} />
+          입력창 보기 — 지금 {state.textarea ? '켜짐' : '꺼짐'}
         </label>
       </div>
       {state.notes && (
