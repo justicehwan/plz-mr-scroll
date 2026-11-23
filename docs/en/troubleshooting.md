@@ -288,7 +288,7 @@ Reasons — other:
 
 - Real Windows (17px was simulated with a custom scrollbar)
 - Safari with the setting that makes the default scrollbar take space
-- Safari 26 itself (Playwright's WebKit is a different build of the same engine)
+- Safari 26 itself (Playwright's WebKit is a different build of the same engine) — it can't be run by the automated tests. In Safari 26.3, only the float-outside scene of the demo page was checked by hand. That turned up one problem that never showed in the test WebKit (a freshly floated scrollbar only lands in place on the next frame), and it was fixed
 - Older browsers without anchor positioning
 
 ### What the tests assert

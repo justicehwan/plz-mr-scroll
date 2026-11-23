@@ -17,10 +17,17 @@
 
 </div>
 
+<div align="center">
+
+  <img src="./docs/demo.gif" width="760" alt="Before: when the scrollbar appears, the content is pushed to the left. After, with plz-mr-scroll: nothing moves." />
+
+</div>
+
 **Contents**
 
 - [Mr. Scroll's problem](#mr-scrolls-problem)
 - [A gentleman's manners](#a-gentlemans-manners)
+- [More examples](#more-examples)
 - [Usage](#usage)
 - [Finding a place to stand](#finding-a-place-to-stand)
 - [Options](#options)
@@ -80,6 +87,26 @@ Until now, we've kept him in line like this.
 - **He tidies up when he leaves.** It restores the padding and markers it changed.
 
 These are the manners he aims for. Even a gentleman can't do everything — see [Things to know](#things-to-know).
+
+&nbsp;
+
+&nbsp;
+
+## More examples
+
+Each clip shows the same screen twice — left without the library, right with it. The numbers are measured live.
+
+| Sidebar — the scrollbar stands in the panel padding | Chat — lines keep their wrapping |
+| --- | --- |
+| ![Sidebar — the scrollbar stands in the panel padding](./docs/demo-sidebar.gif) | ![Chat — lines keep their wrapping](./docs/demo-chat.gif) |
+
+| Page jump — a centered page stays centered | Code block — nothing below is pushed down |
+| --- | --- |
+| ![Page jump — a centered page stays centered](./docs/demo-page.gif) | ![Code block — nothing below is pushed down](./docs/demo-code.gif) |
+
+With the `debug` option on, each scroll area shows how it was handled.
+
+![Debug overlay: one area is labelled outside, the other padding](./docs/demo-debug.gif)
 
 &nbsp;
 

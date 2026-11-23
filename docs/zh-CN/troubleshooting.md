@@ -288,7 +288,7 @@
 
 - 真实的 Windows（17px 是用自定义样式滚动条模拟的）
 - Safari 中默认滚动条占宽度的设置
-- Safari 26 本身（Playwright 的 WebKit 是同一引擎的另一个构建）
+- Safari 26 本身（Playwright 的 WebKit 是同一引擎的另一个构建）—— 自动测试跑不了。只在 Safari 26.3 里人工看过演示页的“浮到外侧”场景。当时发现并修复了一个在测试用 WebKit 里不会出现的问题（刚浮出的滚动条要到下一帧才就位）
 - 不支持 anchor positioning 的旧浏览器
 
 ### 测试断言的内容

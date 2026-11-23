@@ -201,6 +201,27 @@ const no = (why: string) => {
 const px = (value: string) => parseFloat(value) || 0;
 const scrolls = (overflowY: string) => overflowY === "auto" || overflowY === "scroll";
 
+/** `::-webkit-scrollbar` 로 스크롤바를 꾸미는 엔진인가(Chromium·WebKit). */
+const WEBKIT_BARS = typeof CSS !== "undefined" && CSS.supports("selector(::-webkit-scrollbar)");
+
+/**
+ * 숨겼다 되살린 원래 스크롤바가 제 모습이 아닌가 — 아예 안 재지거나(0), `::-webkit-scrollbar` 로 꾸민 굵기와 다르게 재진다.
+ * 표준 속성(`scrollbar-width`·`scrollbar-color`)을 준 영역은 꾸민 굵기가 쓰이지 않으니 비교하지 않는다.
+ */
+function revivedWrong(el: HTMLElement): boolean {
+  const width = scrollbarWidthOf(el);
+  const height = scrollbarHeightOf(el);
+  if (width === 0 && height === 0) return true;
+  if (!WEBKIT_BARS) return false;
+  const style = getComputedStyle(el);
+  if (style.scrollbarWidth !== "auto" || style.scrollbarColor !== "auto") return false;
+  const pseudo = getComputedStyle(el, "::-webkit-scrollbar");
+  if (pseudo.display === "none") return false;
+  const wrong = (measured: number, styled: number) => measured > 0 && styled > 0 && Math.abs(measured - styled) > 1;
+
+  return wrong(width, px(pseudo.width)) || wrong(height, px(pseudo.height));
+}
+
 /**
  * 이 여백 변경을 써도 상자가 「스크롤바가 없을 때」와 같은가 — 스크롤 요소 자신은 바깥 크기가, 그 안쪽 자식은 내용 칸의 폭이 같아야 한다.
  * 크기를 안쪽 내용 기준(`box-sizing: content-box`)으로 못박은 상자는 여백을 줄여도 내용 칸이 안 늘고 상자만 준다 — 그런 상자에는 그 방식을 쓰지 않는다.
@@ -1268,31 +1289,56 @@ function start() {
     ghost.v.barSet = ghost.v.bar.scrollTop;
     ghost.h.bar.scrollLeft = el.scrollLeft;
     ghost.h.barSet = ghost.h.bar.scrollLeft;
-    if (!anchored) return true;
-    // ponytail: 띄운 자리를 바로 재서 확인한다(가장자리에 붙인 영역마다 레이아웃을 한 번 더 계산한다). 무거우면 한 번 붙은 영역은 다시 재지 않는다.
-    // ponytail: 세로·가로를 둘 다 내용 위에 띄우면 오른쪽 아래 모서리에서 두 손잡이가 겹칠 수 있다 — 거슬리면 서로의 굵기만큼 줄이고 스크롤 위치를 비율로 맞춘다.
-    const box = el.getBoundingClientRect();
-    // 제자리에 붙었고, 조상에 잘려 안 보이는 자리도 아닌가.
-    const stuck = (target: HTMLElement, left: number, top: number, vertical: boolean) => {
-      const at = target.getBoundingClientRect();
+    if (!anchored) {
+      pendingFit.delete(el);
 
-      return Math.abs(at.left - left) <= 1 && Math.abs(at.top - top) <= 1 && !clippedAway(el, at, vertical);
-    };
-    const verticalLeft = outside ? box.right + offset : box.right - borderRight - scrollbarWidth;
-    const horizontalTop =
-      bottom === "outside" ? box.bottom + bottomOffset : box.bottom - borderBottom - height;
-    if (
-      (!pinned || stuck(ghost.v.bar, verticalLeft, box.top + borderTop, true)) &&
-      (!showH || stuck(ghost.h.bar, box.left + borderLeft, horizontalTop, false))
-    ) {
       return true;
     }
-    // 안 붙었거나 잘린다 — 기억해 두고 넓히기·겹치기로 다시 판별하게 한다.
-    noOutside.add(el);
+    // ponytail: 띄운 자리를 바로 재서 확인한다(가장자리에 붙인 영역마다 레이아웃을 한 번 더 계산한다). 무거우면 한 번 붙은 영역은 다시 재지 않는다.
+    // ponytail: 세로·가로를 둘 다 내용 위에 띄우면 오른쪽 아래 모서리에서 두 손잡이가 겹칠 수 있다 — 거슬리면 서로의 굵기만큼 줄이고 스크롤 위치를 비율로 맞춘다.
+    // 제자리에 붙었고, 조상에 잘려 안 보이는 자리도 아닌가.
+    const fits = () => {
+      const box = el.getBoundingClientRect();
+      const stuck = (target: HTMLElement, left: number, top: number, vertical: boolean) => {
+        const at = target.getBoundingClientRect();
 
-    return false;
+        return Math.abs(at.left - left) <= 1 && Math.abs(at.top - top) <= 1 && !clippedAway(el, at, vertical);
+      };
+      const verticalLeft = outside ? box.right + offset : box.right - borderRight - scrollbarWidth;
+      const horizontalTop =
+        bottom === "outside" ? box.bottom + bottomOffset : box.bottom - borderBottom - height;
+
+      return (
+        (!pinned || stuck(ghost.v.bar, verticalLeft, box.top + borderTop, true)) &&
+        (!showH || stuck(ghost.h.bar, box.left + borderLeft, horizontalTop, false))
+      );
+    };
+    if (fits()) {
+      pendingFit.delete(el);
+
+      return true;
+    }
+    // 안 붙었거나 잘린다. 다만 방금 붙인 자리를 그 자리에서 재면 아직 안 잡혀 있는 엔진이 있다(Safari 26 — 다음 화면 갱신에서야 잡힌다).
+    // 바로 포기하고 원래 스크롤바를 되살려 다시 재면, 그 엔진은 꾸민 스크롤바 대신 기본 스크롤바의 폭을 돌려준다 —
+    // 한 번은 띄운 채로 두고 다음 화면 갱신 때 다시 잰다. 그때도 아니면 기억해 두고 넓히기·겹치기로 다시 판별한다.
+    const waiting = pendingFit.has(el);
+    pendingFit.set(el, fits);
+    if (!waiting) {
+      requestAnimationFrame(() => {
+        const again = pendingFit.get(el);
+        pendingFit.delete(el);
+        if (!again || stopped || !el.isConnected || again()) return;
+        noOutside.add(el);
+        sync([el]);
+      });
+    }
+
+    return true;
   };
+  /** 가장자리에 붙인 스크롤바가 제자리에 붙었는지 다음 화면 갱신 때 다시 재기로 한 영역 — 그때 쓸 검사. */
+  const pendingFit = new Map<HTMLElement, () => boolean>();
   const hideOverlay = (el: HTMLElement) => {
+    pendingFit.delete(el);
     if (el === document.body) pageGhost?.bar.style.setProperty("display", "none");
     else ghosts.get(el)?.anchor.style.setProperty("display", "none");
     unwatchChildren(el);
@@ -1336,10 +1382,11 @@ function start() {
       const host = el === document.body ? document.documentElement : el;
       const floated = host.hasAttribute(OVERLAY_ATTRIBUTE);
       host.removeAttribute(OVERLAY_ATTRIBUTE);
-      // 되살린 스크롤바가 안 그려진 경우 — WebKit 은 `::-webkit-scrollbar` 로 꾸민 스크롤바를 한 번 그린 뒤 숨겼다 되살리면
-      // 다시 만들지 않는다(넘치는데 폭이 0 으로 재진다). 그대로 두면 「스크롤바 없음」으로 판별해 띄운 것까지 거둬, 스크롤바가 아예 사라진다.
+      // 되살린 스크롤바가 제대로 되살아나지 않은 경우 — WebKit 은 `::-webkit-scrollbar` 로 꾸민 스크롤바를 한 번 그린 뒤 숨겼다 되살리면
+      // 다시 만들지 않거나(넘치는데 폭이 0 으로 재진다), 꾸미지 않은 기본 스크롤바로 만든다(Safari 26 — 꾸민 폭 10px 이 14px 로 재졌다).
+      // 그대로 두면 「스크롤바 없음」으로 판별해 띄운 것까지 거두거나, 틀린 폭으로 자리를 찾는다.
       // overflow 를 잠깐 바꿨다 돌려놓으면 다시 만든다(스크롤 위치는 그대로다).
-      if (floated && el !== document.body && scrollbarWidthOf(el) === 0 && scrollbarHeightOf(el) === 0) {
+      if (floated && el !== document.body && revivedWrong(el)) {
         const { overflowX, overflowY } = getComputedStyle(el);
         const tall = scrolls(overflowY) && (overflowY === "scroll" || el.scrollHeight - el.clientHeight > 1);
         const wide = scrolls(overflowX) && (overflowX === "scroll" || el.scrollWidth - el.clientWidth > 1);
