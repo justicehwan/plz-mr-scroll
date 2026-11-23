@@ -271,7 +271,7 @@ Reasons — other:
 | --- | --- |
 | Adoption | The same code, before it was extracted into a package, is in use in 2 apps of one service |
 | Automated tests | `npm test` — runs the built output (`dist`) in the playground (`playground/`) with Playwright on three engines |
-| Latest result | 2026-11-20, 126 passed · 21 skipped because that engine can't produce a scrollbar width |
+| Latest result | 2026-11-23, 128 passed · 22 skipped because that engine can't produce a scrollbar width |
 | Test targets | 39 cases in the test bench (`playground/bench.html`), plus 12 pages mimicking other projects (around 60 scroll areas) |
 | Real app screens | Measured on 2026-11-20 with the code just before extraction, in Chrome (macOS), with an 11px scrollbar and a window width of 2025 — content moved 0 before and after the scrollbar appeared (0.1px at most) in about 120 vertical scroll areas across 46 screens and 4 kinds of modals. Horizontal scroll areas and narrow windows (1024, 390) were not measured on app screens |
 | Deferred | An option to turn it on for only part of the page (a single container) — postponed because modals and dropdowns render outside that container. App- and page-level scope already works through where you place the component |
@@ -310,6 +310,7 @@ Floated scrollbars:
 - That no bar intercepts clicks when there's nothing to scroll
 - That the wheel over a floated bar passes through to the scroll area, while Ctrl+wheel doesn't
 - That web component tags don't get a shadow root
+- That the floated scrollbar copies the styled thumb's border and background clip (a thumb made thinner with a transparent border)
 
 Re-evaluation and restoring:
 

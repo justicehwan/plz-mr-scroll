@@ -607,3 +607,42 @@ test('상자 크기를 굳히지 않는다 — 내용·비율로 정해지는 �
   expect.soft(out.always.bar, '7) 늘 띄우는 입력창 — 스크롤바가 보인다').toBe(out.sb)
   expect.soft(out.always.text, '7) 늘 띄우는 입력창 — 글이 늘어도 글자 폭이 그대로다').toBe(out.always.emptyText)
 })
+
+test('띄운 스크롤바가 꾸민 손잡이의 테두리까지 따라간다 — 투명 테두리로 가늘게 만든 손잡이', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', 'Firefox 는 ::-webkit-scrollbar 로 꾸민 스크롤바가 없다')
+  await page.goto(url('app-settings', false, 11))
+  await page.waitForTimeout(500)
+  const out = await page.evaluate(async (path) => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    const sheet = document.createElement('style')
+    // 요즘 사이트에서 흔한 꾸밈 — 손잡이에 투명한 테두리를 둘러 12px 자리 안에서 6px 로 가늘어 보이게 한다.
+    sheet.textContent =
+      '#thin::-webkit-scrollbar{width:12px}' +
+      '#thin::-webkit-scrollbar-thumb{border:3px solid transparent;border-radius:999px;background:rgb(185, 192, 204);background-clip:content-box}'
+    document.head.appendChild(sheet)
+    const host = document.createElement('div')
+    host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;background:#fff'
+    // 여백이 어디에도 없다 — 내용 위에 겹쳐 띄운다.
+    host.innerHTML = '<div id="thin" style="box-sizing:border-box;width:200px;height:100px;overflow-y:auto"><div style="height:400px">내용</div></div>'
+    document.body.appendChild(host)
+    const el = document.getElementById('thin')!
+    const native = getComputedStyle(el, '::-webkit-scrollbar-thumb')
+    const want = { border: native.borderTopWidth, clip: native.backgroundClip, color: native.borderTopColor, background: native.backgroundColor, radius: native.borderTopLeftRadius }
+    const core = await import(/* @vite-ignore */ path)
+    const uninstall = core.installMrScroll({ debug: true })
+    await wait(400)
+    const bar = el.shadowRoot?.querySelector('[data-scrollbar-ghost]')?.children[0] as HTMLElement | undefined
+    const thumb = bar ? getComputedStyle(bar, '::-webkit-scrollbar-thumb') : null
+    const got = thumb && { border: thumb.borderTopWidth, clip: thumb.backgroundClip, color: thumb.borderTopColor, background: thumb.backgroundColor, radius: thumb.borderTopLeftRadius }
+    const result = { method: el.getAttribute('data-scrollbar-method'), width: bar?.offsetWidth, want, got }
+    uninstall()
+    host.remove()
+    sheet.remove()
+    return result
+  }, CORE)
+  console.log(`[thumb] ${browserName} ${JSON.stringify(out)}`)
+  expect(out.method, '시험 구조 확인 — 스크롤바를 띄우는 방식이어야 한다').toBe('overlay')
+  expect.soft(out.width, '띄운 스크롤바의 굵기').toBe(12)
+  expect.soft(out.want.border, '시험 구조 확인 — 원래 손잡이에 테두리가 있다').toBe('3px')
+  expect.soft(out.got, '띄운 손잡이가 원래 손잡이와 같은 테두리·칠 범위·색·둥글기를 갖는다').toEqual(out.want)
+})

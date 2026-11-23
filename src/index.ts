@@ -1243,8 +1243,17 @@ function start() {
       width === "auto" &&
       Math.abs(overlay ? px(pseudo.width) - scrollbarWidth : px(pseudo.height) - height) <= 1;
     const customThumb = custom ? getComputedStyle(el, "::-webkit-scrollbar-thumb") : null;
+    // 손잡이의 테두리와 칠 범위도 옮긴다 — 투명한 테두리를 둘러 손잡이를 가늘어 보이게 하는 꾸밈
+    // (`border: 3px solid transparent` + `background-clip: content-box`)이 흔하다. 빼면 띄운 손잡이만 굵어진다.
+    const sides = ["Top", "Right", "Bottom", "Left"] as const;
+    const thumbBorder = customThumb
+      ? `border-style:${sides.map((side) => customThumb[`border${side}Style`]).join(" ")};` +
+        `border-width:${sides.map((side) => customThumb[`border${side}Width`]).join(" ")};` +
+        `border-color:${sides.map((side) => customThumb[`border${side}Color`]).join(" ")};` +
+        `background-clip:${customThumb.backgroundClip}`
+      : "";
     const look = customThumb
-      ? `[${GHOST_ATTRIBUTE}]>div::-webkit-scrollbar{width:${scrollbarWidth}px;height:${height}px}[${GHOST_ATTRIBUTE}]>div::-webkit-scrollbar-thumb{background:${customThumb.backgroundColor};border-radius:${customThumb.borderRadius}}`
+      ? `[${GHOST_ATTRIBUTE}]>div::-webkit-scrollbar{width:${scrollbarWidth}px;height:${height}px}[${GHOST_ATTRIBUTE}]>div::-webkit-scrollbar-thumb{background:${customThumb.backgroundColor};border-radius:${customThumb.borderRadius};${thumbBorder}}`
       : `[${GHOST_ATTRIBUTE}]>div{scrollbar-width:${width};scrollbar-color:${thumbOf(style)} transparent}`;
 
     el.setAttribute(OVERLAY_ATTRIBUTE, "");
