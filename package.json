@@ -53,6 +53,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "vite",
+    "build:demo": "vite build --base=/plz-mr-scroll/ && node -e \"require('fs').copyFileSync('dist-demo/demo.html','dist-demo/index.html')\"",
     "typecheck": "tsc -p tsconfig.json",
     "test": "npm run build && playwright test",
     "prepublishOnly": "npm run typecheck && npm run build"

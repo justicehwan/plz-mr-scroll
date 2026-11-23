@@ -18,4 +18,6 @@ export default defineConfig({
   },
   // 테스트용 서버만 포트를 못박는다(테스트가 그 주소를 연다). 평소에는 Vite 기본 포트를 쓴다.
   server: { ...(dist ? { port: 5198, strictPort: true } : {}), fs: { allow: [here('.')] } },
+  // `npm run build:demo` — 공개 데모(GitHub Pages)로 올릴 demo.html 만 묶는다.
+  build: { outDir: here('./dist-demo'), emptyOutDir: true, rollupOptions: { input: here('./playground/demo.html') } },
 })
