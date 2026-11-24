@@ -2,7 +2,7 @@
 
 Changes that affect people using the library. The newest version is at the top.
 
-## 0.2.0 - unreleased
+## 0.2.0 - 2026-11-24
 
 ### Changed
 
