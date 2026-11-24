@@ -18,13 +18,19 @@
 
 </div>
 
+<p align="center">
+  <a href="https://justicehwan.github.io/plz-mr-scroll/"><img src="./docs/demo-button.zh-CN.svg" width="270" alt="▶ 在线演示，点开试试" /></a>
+</p>
+
+&nbsp;
+
 <div align="center">
 
   <img src="./docs/demo.gif" width="760" alt="使用前：滚动条出现时，内容被向左挤开。使用 plz-mr-scroll 后：纹丝不动。" />
 
 </div>
 
-<p align="center"><b><a href="https://justicehwan.github.io/plz-mr-scroll/">▶ 在线演示，点开试试</a></b></p>
+&nbsp;
 
 **目录**
 
@@ -40,6 +46,7 @@
 - [须知](#须知)
 - [浏览器支持](#浏览器支持)
 - [文档](#文档)
+- [更新日志](#更新日志)
 - [开发](#开发)
 - [许可证](#许可证)
 
@@ -99,15 +106,23 @@ npm install plz-mr-scroll
 
 每段动图都是同一个界面并排两份 —— 左边不用本库，右边用了。数字是当场测出来的。
 
+&nbsp;
+
 | 侧边栏 —— 滚动条站在面板的留白里 | 聊天 —— 换行位置不变 |
 | --- | --- |
 | ![侧边栏 —— 滚动条站在面板的留白里](./docs/demo-sidebar.gif) | ![聊天 —— 换行位置不变](./docs/demo-chat.gif) |
+
+&nbsp;
 
 | 页面跳动 —— 居中的页面依然居中 | 代码块 —— 下方内容不会被往下挤 |
 | --- | --- |
 | ![页面跳动 —— 居中的页面依然居中](./docs/demo-page.gif) | ![代码块 —— 下方内容不会被往下挤](./docs/demo-code.gif) |
 
+&nbsp;
+
 打开 `debug` 选项后，每个滚动区域都会画出它是怎么被处理的。
+
+&nbsp;
 
 ![调试显示：一个区域标着 outside，另一个标着 padding](./docs/demo-debug.gif)
 
@@ -319,6 +334,14 @@ installMrScroll({ textarea: true });
 - [工作原理](./docs/zh-CN/how-it-works.md) — 站位顺序的细节、重新判定的时机、在页面上留下的内容
 - [配置](./docs/zh-CN/configuration.md) — 作用范围、选项、按区域设置（`manual` 的用法）、使用建议
 - [问题排查 · 限制 · 验证情况](./docs/zh-CN/troubleshooting.md) — 调试显示的读法、按症状处理、全部限制、已验证的环境
+
+&nbsp;
+
+&nbsp;
+
+## 更新日志
+
+每个版本的变更见 [CHANGELOG.md](./CHANGELOG.md)（英文），最新版本在最上面。
 
 &nbsp;
 

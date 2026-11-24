@@ -18,13 +18,19 @@
 
 </div>
 
+<p align="center">
+  <a href="https://justicehwan.github.io/plz-mr-scroll/"><img src="./docs/demo-button.ja.svg" width="270" alt="▶ デモを触ってみる" /></a>
+</p>
+
+&nbsp;
+
 <div align="center">
 
   <img src="./docs/demo.gif" width="760" alt="適用前: スクロールバーが現れると内容が左にずれる。plz-mr-scroll 適用後: 何も動かない。" />
 
 </div>
 
-<p align="center"><b><a href="https://justicehwan.github.io/plz-mr-scroll/">▶ デモを触ってみる</a></b></p>
+&nbsp;
 
 **目次**
 
@@ -40,6 +46,7 @@
 - [知っておくこと](#知っておくこと)
 - [ブラウザ対応](#ブラウザ対応)
 - [ドキュメント](#ドキュメント)
+- [変更履歴](#変更履歴)
 - [開発](#開発)
 - [ライセンス](#ライセンス)
 
@@ -99,15 +106,23 @@ npm install plz-mr-scroll
 
 どの動画も同じ画面が2つ並んでいる — 左はライブラリなし、右は適用後。数字はその場で測った値である。
 
+&nbsp;
+
 | サイドバー — スクロールバーがパネルの余白に立つ | チャット — 改行位置が変わらない |
 | --- | --- |
 | ![サイドバー — スクロールバーがパネルの余白に立つ](./docs/demo-sidebar.gif) | ![チャット — 改行位置が変わらない](./docs/demo-chat.gif) |
+
+&nbsp;
 
 | ページ遷移 — 中央寄せのページが中央のまま | コードブロック — 下の内容が押し下げられない |
 | --- | --- |
 | ![ページ遷移 — 中央寄せのページが中央のまま](./docs/demo-page.gif) | ![コードブロック — 下の内容が押し下げられない](./docs/demo-code.gif) |
 
+&nbsp;
+
 `debug` オプションを有効にすると、スクロール領域ごとにどう処理したかが描かれる。
+
+&nbsp;
 
 ![デバッグ表示: 一方の領域には outside、もう一方には padding のラベルが付いている](./docs/demo-debug.gif)
 
@@ -319,6 +334,14 @@ Chromium・Firefox・WebKit の3エンジンで、自動テストにより確認
 - [動作の仕組み](./docs/ja/how-it-works.md) — 立つ場所を探す順序の詳細、再判定するタイミング、画面に残すもの
 - [設定](./docs/ja/configuration.md) — 適用範囲、オプション、領域ごとの設定（`manual` の使い方）、導入時の推奨事項
 - [トラブルシューティング · 制約事項 · 検証状況](./docs/ja/troubleshooting.md) — デバッグ表示の読み方、症状別の対処、制約の一覧、確認した環境
+
+&nbsp;
+
+&nbsp;
+
+## 変更履歴
+
+バージョンごとの変更点は [CHANGELOG.md](./CHANGELOG.md) にある（英語）。最新バージョンが一番上。
 
 &nbsp;
 

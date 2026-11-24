@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="92" viewBox="0 0 440 92" role="img" aria-label="在线演示，点开试试">
+  <rect x="11.5" y="11.5" width="417" height="69" rx="34.5" fill="#ffffff" stroke="#111111" stroke-width="3" />
+  <path d="M50 33 L70 46 L50 59 Z" fill="#111111" />
+  <text x="244" y="55" text-anchor="middle" fill="#111111" font-family="system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Hiragino Sans', 'PingFang SC', sans-serif" font-size="26" font-weight="700">在线演示，点开试试</text>
+</svg>

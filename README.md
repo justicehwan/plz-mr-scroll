@@ -18,13 +18,19 @@
 
 </div>
 
+<p align="center">
+  <a href="https://justicehwan.github.io/plz-mr-scroll/"><img src="./docs/demo-button.svg" width="270" alt="▶ Try the live demo" /></a>
+</p>
+
+&nbsp;
+
 <div align="center">
 
   <img src="./docs/demo.gif" width="760" alt="Before: when the scrollbar appears, the content is pushed to the left. After, with plz-mr-scroll: nothing moves." />
 
 </div>
 
-<p align="center"><b><a href="https://justicehwan.github.io/plz-mr-scroll/">▶ Try the live demo</a></b></p>
+&nbsp;
 
 **Contents**
 
@@ -40,6 +46,7 @@
 - [Things to know](#things-to-know)
 - [Browser support](#browser-support)
 - [Documentation](#documentation)
+- [Changelog](#changelog)
 - [Development](#development)
 - [License](#license)
 
@@ -99,15 +106,23 @@ These are the manners he aims for. Even a gentleman can't do everything — see 
 
 Each clip shows the same screen twice — left without the library, right with it. The numbers are measured live.
 
+&nbsp;
+
 | Sidebar — the scrollbar stands in the panel padding | Chat — lines keep their wrapping |
 | --- | --- |
 | ![Sidebar — the scrollbar stands in the panel padding](./docs/demo-sidebar.gif) | ![Chat — lines keep their wrapping](./docs/demo-chat.gif) |
+
+&nbsp;
 
 | Page jump — a centered page stays centered | Code block — nothing below is pushed down |
 | --- | --- |
 | ![Page jump — a centered page stays centered](./docs/demo-page.gif) | ![Code block — nothing below is pushed down](./docs/demo-code.gif) |
 
+&nbsp;
+
 With the `debug` option on, each scroll area shows how it was handled.
+
+&nbsp;
 
 ![Debug overlay: one area is labelled outside, the other padding](./docs/demo-debug.gif)
 
@@ -319,6 +334,14 @@ Tested automatically on three engines: Chromium, Firefox, and WebKit. What was a
 - [How it works](./docs/en/how-it-works.md) — the order for finding a place in detail, when it re-evaluates, what it leaves on the page
 - [Configuration](./docs/en/configuration.md) — scope, options, per-area settings (how to use `manual`), recommendations
 - [Troubleshooting · Limitations · Verification status](./docs/en/troubleshooting.md) — reading the debug overlay, fixes by symptom, the full list of limitations, tested environments
+
+&nbsp;
+
+&nbsp;
+
+## Changelog
+
+What changed in each version is in [CHANGELOG.md](./CHANGELOG.md). The newest version is at the top.
 
 &nbsp;
 

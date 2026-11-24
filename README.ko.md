@@ -18,13 +18,19 @@
 
 </div>
 
+<p align="center">
+  <a href="https://justicehwan.github.io/plz-mr-scroll/"><img src="./docs/demo-button.ko.svg" width="270" alt="▶ 데모 직접 눌러 보기" /></a>
+</p>
+
+&nbsp;
+
 <div align="center">
 
   <img src="./docs/demo.gif" width="760" alt="적용 전: 스크롤바가 생기면 내용이 왼쪽으로 밀린다. plz-mr-scroll 적용 후: 아무것도 움직이지 않는다." />
 
 </div>
 
-<p align="center"><b><a href="https://justicehwan.github.io/plz-mr-scroll/">▶ 데모 직접 눌러 보기</a></b></p>
+&nbsp;
 
 **목차**
 
@@ -40,6 +46,7 @@
 - [알아 둘 것](#알아-둘-것)
 - [브라우저 지원](#브라우저-지원)
 - [문서](#문서)
+- [변경 기록](#변경-기록)
 - [개발](#개발)
 - [라이선스](#라이선스)
 
@@ -99,15 +106,23 @@ npm install plz-mr-scroll
 
 움짤마다 같은 화면이 둘이다 — 왼쪽은 라이브러리 없이, 오른쪽은 적용한 것. 숫자는 그 자리에서 잰 값이다.
 
+&nbsp;
+
 | 사이드바 — 스크롤바가 패널의 여백에 선다 | 채팅 — 줄바꿈이 그대로다 |
 | --- | --- |
 | ![사이드바 — 스크롤바가 패널의 여백에 선다](./docs/demo-sidebar.gif) | ![채팅 — 줄바꿈이 그대로다](./docs/demo-chat.gif) |
+
+&nbsp;
 
 | 페이지 전환 — 가운데 놓인 페이지가 그대로 가운데 있다 | 코드 블록 — 아래 내용이 밀리지 않는다 |
 | --- | --- |
 | ![페이지 전환 — 가운데 놓인 페이지가 그대로 가운데 있다](./docs/demo-page.gif) | ![코드 블록 — 아래 내용이 밀리지 않는다](./docs/demo-code.gif) |
 
+&nbsp;
+
 `debug` 옵션을 켜면 스크롤 영역마다 어떻게 처리했는지가 그려진다.
+
+&nbsp;
 
 ![진단 표시: 한 영역에는 outside, 다른 영역에는 padding 딱지가 붙어 있다](./docs/demo-debug.gif)
 
@@ -319,6 +334,14 @@ Chromium · Firefox · WebKit 세 엔진에서 자동 테스트로 확인한다.
 - [동작 방식](./docs/ko/how-it-works.md) — 자리를 찾는 순서의 세부, 다시 판별하는 때, 화면에 남기는 것
 - [설정](./docs/ko/configuration.md) — 적용 범위, 옵션, 영역별 설정(`manual` 쓰는 법), 적용 시 권장사항
 - [문제 해결 · 제약사항 · 검증 현황](./docs/ko/troubleshooting.md) — 진단 표시 읽는 법, 증상별 대처, 제약 전체, 확인한 환경
+
+&nbsp;
+
+&nbsp;
+
+## 변경 기록
+
+버전마다 무엇이 바뀌었는지는 [CHANGELOG.md](./CHANGELOG.md)에 있다(영문). 가장 새 버전이 맨 위다.
 
 &nbsp;
 
