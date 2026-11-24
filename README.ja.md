@@ -180,7 +180,7 @@ uninstall();
 ```
 
 - インストールもバンドラーも要らない。HTML のどこに貼ってもよい — `<head>` に置いても、文書を読み終えてから始まる。
-- 本番ではバージョンを固定する: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.0/+esm`。
+- 本番ではバージョンを固定する: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.1/+esm`。
 
 &nbsp;
 

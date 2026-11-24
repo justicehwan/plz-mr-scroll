@@ -2,6 +2,10 @@
 
 Changes that affect people using the library. The newest version is at the top.
 
+## 0.2.1 - 2026-11-24
+
+- README only: a link to this changelog, a bigger demo button, more room around the GIFs. No code changes.
+
 ## 0.2.0 - 2026-11-24
 
 ### Changed

@@ -180,7 +180,7 @@ uninstall();
 ```
 
 - 설치도 번들러도 필요 없다. HTML 어디에 붙여도 된다 — `<head>` 에 둬도 문서를 다 읽은 뒤에 시작한다.
-- 실제 서비스에서는 버전을 못박는다: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.0/+esm`.
+- 실제 서비스에서는 버전을 못박는다: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.1/+esm`.
 
 &nbsp;
 
