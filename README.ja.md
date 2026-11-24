@@ -13,7 +13,8 @@
 <div align="center">
 
   <b>スクロールバーを紳士にするライブラリ。</b><br />
-  スクロールバーが現れても、レイアウトは一歩もずれない。
+  スクロールバーが現れても、レイアウトは一歩もずれない。<br />
+  <sub>場所を先に空けておかない（<code>scrollbar-gutter: stable</code> とは違う）· ブラウザ標準のスクロールバーのまま · React がなくても使える</sub>
 
 </div>
 
@@ -138,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - 画面には何も描画しない。ブラウザでマウントされた後に動作するため、サーバーレンダリングの結果には影響しない。
 - コンポーネントが画面にある間だけ動く。そのため、置く場所がそのまま適用範囲になる — アプリの最上位のレイアウトに置けばアプリ全体、1ページのレイアウトに置けばそのページにいる間だけ。
 
-Vue · Svelte · 一般のサイト
+**Vue · Svelte · 一般のサイト**
 
 ```ts
 import { installMrScroll } from "plz-mr-scroll";
@@ -152,6 +153,19 @@ uninstall();
 - 本体は依存するライブラリがない。React は任意の依存なので、一緒にはインストールされない。
 - ESM（`import`）と CommonJS（`require`）の両方が入っており、型定義も付いてくる。
 - document がない環境（サーバー）で読み込んでも、何もせず静かに終わる。
+
+**ビルドなし — CDN からそのまま**
+
+```html
+<script type="module">
+  import { installMrScroll } from "https://cdn.jsdelivr.net/npm/plz-mr-scroll/+esm";
+
+  installMrScroll();
+</script>
+```
+
+- インストールもバンドラーも要らない。HTML のどこに貼ってもよい — `<head>` に置いても、文書を読み終えてから始まる。
+- 本番ではバージョンを固定する: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.1.1/+esm`。
 
 &nbsp;
 
@@ -174,6 +188,7 @@ uninstall();
 - スクロールバーの幅は仮定せず、そのブラウザで測った値を使う。
 - 領域や内容のサイズ、要素、スタイルが変わると、見直す。
 - ページ全体（ブラウザウィンドウ）のスクロール、場所を空けてある領域（`scrollbar-gutter: stable`）、スクロールバーを常に表示しておく領域（`overflow: scroll`）も扱う。
+- ページ全体のスクロールでは、固定ヘッダー、フローティングボタン、中央のトーストも元の位置に保ち、スクロールをロックするモーダルともぶつからない。
 
 方式ごとの条件と、画面に残すものは[動作の仕組み](./docs/ja/how-it-works.md)にある。
 

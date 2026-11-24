@@ -13,7 +13,8 @@
 <div align="center">
 
   <b>A library that turns your scrollbar into a gentleman.</b><br />
-  The scrollbar shows up, and the layout doesn't move an inch.
+  The scrollbar shows up, and the layout doesn't move an inch.<br />
+  <sub>No reserved gutter (unlike <code>scrollbar-gutter: stable</code>) · the native scrollbar · React or no framework at all</sub>
 
 </div>
 
@@ -138,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - It renders nothing. It starts after it mounts in the browser, so it doesn't affect server-rendered output.
 - It runs only while the component is mounted, so where you place it sets its scope — in your app's root layout it covers the whole app; in one page's layout, only while that page is open.
 
-Vue · Svelte · plain JavaScript
+**Vue · Svelte · plain JavaScript**
 
 ```ts
 import { installMrScroll } from "plz-mr-scroll";
@@ -152,6 +153,19 @@ uninstall();
 - The core has no dependencies. React is an optional peer dependency, so it isn't installed along with it.
 - It ships both ESM (`import`) and CommonJS (`require`), with type definitions included.
 - Calling it where there's no document (on the server) quietly does nothing.
+
+**No build step — straight from a CDN**
+
+```html
+<script type="module">
+  import { installMrScroll } from "https://cdn.jsdelivr.net/npm/plz-mr-scroll/+esm";
+
+  installMrScroll();
+</script>
+```
+
+- Nothing to install and no bundler. Paste it into any HTML page — in `<head>` too, since it waits for the document to load.
+- For production, pin a version: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.1.1/+esm`.
 
 &nbsp;
 
@@ -174,6 +188,7 @@ Mr. Scroll doesn't force one approach everywhere. For each scroll area that show
 - It never assumes the scrollbar width; it uses the value measured in that browser.
 - It looks again whenever the size of the area or its content, the elements, or the styles change.
 - It also handles page (browser window) scrolling, areas that reserve the scrollbar's space (`scrollbar-gutter: stable`), and areas that always show a scrollbar (`overflow: scroll`).
+- On page scrolling it also keeps fixed headers, floating buttons and centered toasts where they were, and stays out of the way of modals that lock scrolling.
 
 The conditions for each method and what it leaves on the page are in [How it works](./docs/en/how-it-works.md).
 

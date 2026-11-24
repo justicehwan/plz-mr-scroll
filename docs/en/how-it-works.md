@@ -146,6 +146,11 @@ It's decided separately from the vertical one.
 - It checks the vertical scrollbar in the same order.
 - There's no outside, so 3 is skipped.
 - Overlay floats the scrollbar at the right edge of the viewport.
+- When the window scrollbar stays in place (methods 1 and 2), elements laid out against the viewport width are also put where they sit with no scrollbar — fixed headers, floating buttons, centered toasts, boxes pinned to a corner of the page.
+  - A full-width one gives up its own right padding (or gets left padding if its content is centered), the same way a scroll area does.
+  - The others are moved by the difference (`translate`).
+  - To find the difference it hides the window scrollbar for an instant and measures, instead of guessing how each element was positioned.
+- If the code that locks page scrolling (a modal) fills the vanished scrollbar's space with padding of its own, the values written here are kept until the scrollbar returns. Undoing them too would shift the content.
 
 ### Text areas (`textarea`)
 

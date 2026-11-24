@@ -182,6 +182,13 @@ Reasons — other:
 - Such boxes skip 1 and 2 and go to the next in order (Outside, Overlay). It never rewrites width or height to compensate.
 - If an element that can't take a floated scrollbar (such as a text area) is such a box, there's no way to handle it, so it's left as is. Adding `box-sizing: border-box` makes it work.
 
+**Elements laid out against the viewport can't always be held in place.**
+
+- This is about page (browser window) scrolling with the window scrollbar left in place.
+- Left as is: elements that already use `translate`, elements that contain another fixed element, and elements that would slide behind the window scrollbar with no right padding to spare. These shift by the scrollbar's width.
+- A `body` background image aligned to the center or right still shifts.
+- If the element has a transition on `translate` or padding, the adjustment can show as a short slide.
+
 **It doesn't handle the page's (browser window's) horizontal scrollbar.**
 
 ### When floating a scrollbar
@@ -338,3 +345,4 @@ Installation:
 - That the core can be installed and uninstalled without React
 - That the core doesn't import React
 - That installing in an unsupported environment doesn't throw, and later installs and uninstalls still work
+- That on page (browser window) scrolling, the fixed header, the content and floating elements stay put while the scrollbar appears and disappears and while a modal locks and unlocks scrolling in three ways (three layouts)

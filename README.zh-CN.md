@@ -13,7 +13,8 @@
 <div align="center">
 
   <b>教滚动条做个绅士的库。</b><br />
-  滚动条冒出来，布局也纹丝不动。
+  滚动条冒出来，布局也纹丝不动。<br />
+  <sub>不预留位置（不同于 <code>scrollbar-gutter: stable</code>）· 仍是浏览器原生滚动条 · 不用 React 也行</sub>
 
 </div>
 
@@ -138,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - 不会在页面上渲染任何内容。它在浏览器端挂载后才开始工作，因此不影响服务端渲染的结果。
 - 只在组件处于页面上期间运行，所以放在哪里，作用范围就到哪里——放在应用最外层的布局里，作用于整个应用；放在某个页面的布局里，则只在停留在该页面时生效。
 
-Vue · Svelte · 普通网站
+**Vue · Svelte · 普通网站**
 
 ```ts
 import { installMrScroll } from "plz-mr-scroll";
@@ -152,6 +153,19 @@ uninstall();
 - 核心部分不依赖任何库。React 是可选依赖，不会一起安装。
 - 同时提供 ESM（`import`）和 CommonJS（`require`）两种产物，并附带类型定义。
 - 在没有 `document` 的环境（如服务端）中引入也不会报错，什么都不做。
+
+**无需构建 — 直接从 CDN 引入**
+
+```html
+<script type="module">
+  import { installMrScroll } from "https://cdn.jsdelivr.net/npm/plz-mr-scroll/+esm";
+
+  installMrScroll();
+</script>
+```
+
+- 不用安装，也不用打包工具。贴到任何 HTML 页面里都行 — 放在 `<head>` 里也可以，它会等文档加载完再开始。
+- 正式环境请固定版本：`https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.1.1/+esm`。
 
 &nbsp;
 
@@ -174,6 +188,7 @@ uninstall();
 - 滚动条宽度不靠假设，使用在当前浏览器中实测的值。
 - 区域或内容的尺寸、元素、样式发生变化时，会重新判定。
 - 整页（浏览器窗口）滚动、预留了滚动条位置的区域（`scrollbar-gutter: stable`）、始终显示滚动条的区域（`overflow: scroll`）也在处理范围内。
+- 整页滚动时，固定页头、悬浮按钮和居中的提示也会保持原位，并且不会与锁定滚动的模态框冲突。
 
 各方式的条件，以及在页面上留下的内容，见[工作原理](./docs/zh-CN/how-it-works.md)。
 

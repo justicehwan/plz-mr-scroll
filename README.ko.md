@@ -13,7 +13,8 @@
 <div align="center">
 
   <b>스크롤바를 신사답게 만드는 라이브러리.</b><br />
-  스크롤바가 나타나도 레이아웃은 한 발짝도 밀리지 않는다.
+  스크롤바가 나타나도 레이아웃은 한 발짝도 밀리지 않는다.<br />
+  <sub>자리를 미리 비워 두지 않음(<code>scrollbar-gutter: stable</code> 과 다름) · 브라우저 기본 스크롤바 그대로 · React 가 없어도 됨</sub>
 
 </div>
 
@@ -138,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - 화면에는 아무것도 그리지 않는다. 브라우저에서 마운트된 뒤에 동작하므로 서버 렌더링 결과에는 영향이 없다.
 - 컴포넌트가 화면에 있는 동안만 돈다. 그래서 두는 자리가 곧 적용 범위다 — 앱의 맨 위 레이아웃에 두면 앱 전체, 한 페이지의 레이아웃에 두면 그 페이지에 있는 동안만.
 
-Vue · Svelte · 일반 사이트
+**Vue · Svelte · 일반 사이트**
 
 ```ts
 import { installMrScroll } from "plz-mr-scroll";
@@ -152,6 +153,19 @@ uninstall();
 - 본체는 기대는 라이브러리가 없다. React 는 선택 의존이라 같이 설치되지 않는다.
 - ESM(`import`)과 CommonJS(`require`) 둘 다 들어 있고, 타입 정의가 같이 온다.
 - 문서가 없는 곳(서버)에서 불러도 조용히 아무것도 하지 않는다.
+
+**빌드 없이 — CDN 에서 바로**
+
+```html
+<script type="module">
+  import { installMrScroll } from "https://cdn.jsdelivr.net/npm/plz-mr-scroll/+esm";
+
+  installMrScroll();
+</script>
+```
+
+- 설치도 번들러도 필요 없다. HTML 어디에 붙여도 된다 — `<head>` 에 둬도 문서를 다 읽은 뒤에 시작한다.
+- 실제 서비스에서는 버전을 못박는다: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.1.1/+esm`.
 
 &nbsp;
 
@@ -174,6 +188,7 @@ uninstall();
 - 스크롤바 폭은 가정하지 않고 그 브라우저에서 잰 값을 쓴다.
 - 영역이나 내용의 크기, 요소, 스타일이 바뀌면 다시 본다.
 - 페이지 전체(브라우저 창) 스크롤, 자리를 비워 둔 영역(`scrollbar-gutter: stable`), 스크롤바를 늘 띄워 두는 영역(`overflow: scroll`)도 다룬다.
+- 페이지 전체 스크롤에서는 화면에 고정한 헤더, 떠 있는 버튼, 가운데 띄운 알림도 제자리에 두고, 스크롤을 잠그는 모달과 부딪히지 않는다.
 
 방식마다의 조건과 화면에 남기는 것은 [동작 방식](./docs/ko/how-it-works.md)에 있다.
 
