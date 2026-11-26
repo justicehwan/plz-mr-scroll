@@ -2,7 +2,7 @@
 
 import { config } from "./config.js";
 import { isShaped } from "./float.js";
-import { boxChildren, px, scrolls } from "./measure.js";
+import { barOnLeft, boxChildren, px, rectOf, scrolls, sidesOf } from "./measure.js";
 import type { StyleChange } from "./types.js";
 
 /** `planWiden` 이 바깥 자리를 못 찾았을 때 그 까닭 — 진단 표시에 쓴다. 판별 한 번 안에서만 읽는다. */
@@ -13,11 +13,10 @@ const no = (why: string) => {
   return null;
 };
 
-/** 요소를 오른쪽으로 `by` 만큼 넓힌다. */
-function widen(target: HTMLElement, by: number): StyleChange[] {
-  const changes: StyleChange[] = [
-    { target, prop: "marginRight", value: `${px(getComputedStyle(target).marginRight) - by}px` },
-  ];
+/** 요소를 스크롤바 쪽(오른쪽, `flip` 이면 왼쪽)으로 `by` 만큼 넓힌다. */
+function widen(target: HTMLElement, by: number, flip: boolean): StyleChange[] {
+  const margin = `margin${sidesOf(flip).near}` as const;
+  const changes: StyleChange[] = [{ target, prop: margin, value: `${px(getComputedStyle(target)[margin]) - by}px` }];
   const container = target.parentElement;
   if (!container) return changes;
   const style = getComputedStyle(container);
@@ -36,26 +35,29 @@ function widen(target: HTMLElement, by: number): StyleChange[] {
   return changes;
 }
 
-/** 배경·테두리·그림자가 있어 상자로 보이는 요소인가 — 그 밖으로 스크롤바가 나가면 상자에서 삐져나와 보인다. */
-function looksLikeBox(style: CSSStyleDeclaration): boolean {
+const TRANSPARENT = "rgba(0, 0, 0, 0)";
+
+/**
+ * 배경·테두리·그림자가 있어 상자로 보이는 요소인가 — 그 밖으로 스크롤바가 나가면 상자에서 삐져나와 보인다.
+ * 테두리는 스크롤바가 놓이는 쪽(`side`)만 본다 — 세로 스크롤바면 오른쪽(왼쪽에 뜨는 영역은 왼쪽), 가로 스크롤바면 아래.
+ */
+function looksLikeBox(style: CSSStyleDeclaration, side: "Right" | "Left" | "Bottom"): boolean {
   const background = style.backgroundColor;
 
   return (
-    (background !== "transparent" && background !== "rgba(0, 0, 0, 0)") ||
-    px(style.borderRightWidth) > 0 ||
+    (background !== "transparent" && background !== TRANSPARENT) ||
+    px(style[`border${side}Width`]) > 0 ||
     style.boxShadow !== "none"
   );
 }
-
-const TRANSPARENT = "rgba(0, 0, 0, 0)";
 
 /**
  * 스크롤 요소 자신이 눈에 보이는 상자인가 — 그러면 넓히지 않는다.
  * 넓히면 상자가 한쪽으로 길어져 좌우 여백이 달라 보이고, 스크롤바가 생기고 사라질 때 테두리가 움직인다.
  * 배경색은 뒤에 깔린 색과 다를 때만 친다(같은 색이면 넓어져도 안 보인다).
  */
-export function isVisibleBox(el: HTMLElement, style: CSSStyleDeclaration): boolean {
-  if (px(style.borderRightWidth) > 0 || style.boxShadow !== "none" || style.backgroundImage !== "none") return true;
+export function isVisibleBox(el: HTMLElement, style: CSSStyleDeclaration, flip: boolean): boolean {
+  if (px(style[`border${sidesOf(flip).near}Width`]) > 0 || style.boxShadow !== "none" || style.backgroundImage !== "none") return true;
   if (style.outlineStyle !== "none" && px(style.outlineWidth) > 0) return true;
   const background = style.backgroundColor;
   if (background === "transparent" || background === TRANSPARENT) return false;
@@ -72,15 +74,16 @@ export function isVisibleBox(el: HTMLElement, style: CSSStyleDeclaration): boole
  * `el` 의 오른쪽 끝에서 `gap` 만큼 떨어진 곳부터 `width` 만큼의 자리(높이는 `el` 과 같다)에 `parent` 의 다른 자식이 걸쳐 있지 않은가.
  * `below` 면 아래쪽 자리(폭은 `el` 과 같다)를 본다. 스크롤바가 놓일 자리가 비어 있는지 볼 때 쓴다.
  * `el` 전체를 덮는 자식(배경·장식 층)은 그 자리에 놓인 요소가 아니라 전체에 깔린 층이라 치지 않는다.
+ * `flip` 이면 왼쪽 끝에서 왼쪽으로 본다(좌우를 뒤집어 잰다).
  */
-function isEmptyRight(el: HTMLElement, parent: HTMLElement, width: number, below = false, gap = 0): boolean {
+function isEmptyBeside(el: HTMLElement, parent: HTMLElement, width: number, below = false, gap = 0, flip = false): boolean {
   // 상자가 없는 자식(display: contents)은 그 자식들이 실제로 자리를 차지한다(몇 겹이든 펼친다).
   const siblings = boxChildren(parent);
-  const box = el.getBoundingClientRect();
+  const box = rectOf(el, flip);
   const from = (below ? box.bottom : box.right) + gap;
   for (const sibling of siblings) {
     if (sibling.contains(el)) continue;
-    const rect = sibling.getBoundingClientRect();
+    const rect = rectOf(sibling, flip);
     if (rect.width === 0 || rect.height === 0) continue;
     const covers =
       rect.left <= box.left && rect.right >= box.right && rect.top <= box.top && rect.bottom >= box.bottom;
@@ -100,13 +103,16 @@ function isEmptyRight(el: HTMLElement, parent: HTMLElement, width: number, below
 /**
  * 3. 바깥 여백 — 스크롤 요소가 조상의 오른쪽 여백에 맞닿아 있거나, 오른쪽 바깥이 빈 자리면 그쪽으로 스크롤바 폭만큼만 넓힌다.
  *    스크롤바는 내용 바로 옆에 붙고(여백의 왼쪽 끝), 여백의 나머지는 그 오른쪽에 비어 있다.
+ *    `flip` — 스크롤바가 왼쪽에 뜨는 영역. 좌우를 뒤집어 같은 식으로 잰다(아래의 「오른쪽」이 전부 왼쪽이 된다).
  */
 export function planWiden(
   el: HTMLElement,
   scrollbarWidth: number,
+  flip: boolean,
 ): { offset: number; widen: StyleChange[] | null; watch?: Element[]; blocked?: boolean } | null {
   whyNot = "";
-  const right = el.getBoundingClientRect().right;
+  const { near } = sidesOf(flip);
+  const right = rectOf(el, flip).right;
   // 지금까지 맞닿아 온 바깥 끝 — 여백 없이 감싼 틀의 테두리는 건너뛰어, 그 바깥의 여백에 붙어 있는지를 본다.
   let edge = right;
   const clippers: HTMLElement[] = [];
@@ -118,11 +124,12 @@ export function planWiden(
     const style = getComputedStyle(parent);
     // 상자가 없는 틀(display: contents)은 위치를 잴 수 없다 — 없는 것으로 치고 지나간다.
     if (style.display === "contents") continue;
-    const paddingRight = px(style.paddingRight);
+    const paddingRight = px(style[`padding${near}`]);
     const borders = px(style.borderLeftWidth) + px(style.borderRightWidth);
-    const ownScrollbar = parent.offsetWidth - parent.clientWidth - borders;
-    const outer = parent.getBoundingClientRect().right;
-    const contentRight = outer - px(style.borderRightWidth) - ownScrollbar - paddingRight;
+    // 조상의 스크롤바는 조상의 글 방향을 따른다 — 같은 쪽에 떠 있을 때만 이쪽 자리를 차지한다.
+    const ownScrollbar = barOnLeft(parent) === flip ? parent.offsetWidth - parent.clientWidth - borders : 0;
+    const outer = rectOf(parent, flip).right;
+    const contentRight = outer - px(style[`border${near}Width`]) - ownScrollbar - paddingRight;
     const gap = contentRight - edge;
     if (Math.abs(gap) > 1) {
       // 맞닿아 있지 않다 — 가운데 놓인 기둥처럼 오른쪽이 빈 자리일 때만 그쪽을 쓴다.
@@ -133,8 +140,8 @@ export function planWiden(
       // 어느 쪽이든 그 틀과 자식들이 바뀌면 다시 판별하게 한다. 막혀 있으면 `blocked`.
       const watch = [parent, ...parent.children];
 
-      return isEmptyRight(el, parent, scrollbarWidth)
-        ? { offset: 0, widen: widen(el, scrollbarWidth), watch }
+      return isEmptyBeside(el, parent, scrollbarWidth, false, 0, flip)
+        ? { offset: 0, widen: widen(el, scrollbarWidth, flip), watch }
         : { offset: 0, widen: null, watch, blocked: true };
     }
     // 이 조상도 스크롤바가 떠 있고 자기 여백으로 받을 수 있으면(1번), 그만큼은 조상의 스크롤바 몫이다.
@@ -146,20 +153,20 @@ export function planWiden(
       // 이 여백도 나중에 차거나 빌 수 있다(닫기 버튼이 뜨고 사라짐) — 빈 자리와 같이 그 틀과 자식들을 지켜본다.
       const watch = [parent, ...parent.children];
       // 여백 안, 스크롤바가 놓일 자리에 다른 요소(닫기 버튼 등)가 떠 있으면 쓰지 않는다 — 띄운 스크롤바가 그 요소를 덮고 누름을 가로챈다.
-      if (!isEmptyRight(el, parent, scrollbarWidth, false, offset)) {
+      if (!isEmptyBeside(el, parent, scrollbarWidth, false, offset, flip)) {
         return { offset, widen: null, watch, blocked: true };
       }
       // 테두리를 건너왔으면 넓히기로는 못 받는다(넓힌 스크롤바가 그 테두리 위에 걸친다) — 띄울 때만 쓴다.
       // 같이 넓혀야 하는 자르는 틀이 눈에 보이는 상자여도 같다 — 넓히면 그 상자가 한쪽으로 길어진다.
-      if (offset > 1 || clippers.some((clipper) => looksLikeBox(getComputedStyle(clipper)))) {
+      if (offset > 1 || clippers.some((clipper) => looksLikeBox(getComputedStyle(clipper), near))) {
         return { offset, widen: null, watch };
       }
       // 스크롤바 폭만큼만 넓힌다 — 스크롤바가 내용 바로 옆(여백의 왼쪽 끝)에 붙고, 여백의 나머지는 그 오른쪽에 그대로 비어 있다.
-      const changes = widen(el, scrollbarWidth);
+      const changes = widen(el, scrollbarWidth, flip);
       // 넘친 부분을 자르는 중간 래퍼는 같이 넓히고, 넓힌 만큼 오른쪽 여백을 줘서 그 안의 다른 내용은 제자리에 둔다.
       for (const clipper of clippers) {
-        const value = `${px(getComputedStyle(clipper).paddingRight) + scrollbarWidth}px`;
-        changes.push(...widen(clipper, scrollbarWidth), { target: clipper, prop: "paddingRight", value });
+        const value = `${px(getComputedStyle(clipper)[`padding${near}`]) + scrollbarWidth}px`;
+        changes.push(...widen(clipper, scrollbarWidth, flip), { target: clipper, prop: `padding${near}`, value });
       }
 
       return { offset, widen: changes, watch };
@@ -167,7 +174,7 @@ export function planWiden(
     // 바깥 스크롤 영역을 넓히면 그 영역의 스크롤바 자리가 바뀐다 — 건드리지 않는다.
     if (scrolls(style.overflowY)) return no("outside-is-scroller");
     if (style.overflowX !== "visible" || isShaped(style)) clippers.push(parent);
-    if (looksLikeBox(style)) boxed = true;
+    if (looksLikeBox(style, near)) boxed = true;
     // 여백 없이 감싼 틀이면 그 테두리 바깥으로 넘어간다. 여백이 있으면(스크롤바보다 좁은 여백) 넘어가지 않는다 — 스크롤바는 내용 바로 옆에 붙어야 한다.
     if (paddingRight < 1) edge = outer;
   }
@@ -203,7 +210,7 @@ export function hasRoomBelow(
       if (gap + paddingBottom < height || boxed || clipped) return null;
       const watch = [parent, ...parent.children];
 
-      return isEmptyRight(el, parent, height, true) ? { offset: 0, watch } : { offset: 0, watch, blocked: true };
+      return isEmptyBeside(el, parent, height, true) ? { offset: 0, watch } : { offset: 0, watch, blocked: true };
     }
     if (paddingBottom >= height) {
       const offset = edge - bottom;
@@ -211,11 +218,11 @@ export function hasRoomBelow(
       const watch = [parent, ...parent.children];
 
       // 아래 여백 안, 스크롤바가 놓일 자리에 다른 요소가 떠 있으면 쓰지 않는다.
-      return isEmptyRight(el, parent, height, true, offset) ? { offset, watch } : { offset, watch, blocked: true };
+      return isEmptyBeside(el, parent, height, true, offset) ? { offset, watch } : { offset, watch, blocked: true };
     }
     if (scrolls(style.overflowY) || scrolls(style.overflowX)) return null;
     if (style.overflowY !== "visible" || isShaped(style)) clipped = true;
-    if (looksLikeBox(style)) boxed = true;
+    if (looksLikeBox(style, "Bottom")) boxed = true;
     if (paddingBottom < 1) edge = outer;
   }
 

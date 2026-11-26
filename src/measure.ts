@@ -7,6 +7,25 @@ import type { StyleChange } from "./types.js";
 export const px = (value: string) => parseFloat(value) || 0;
 export const scrolls = (overflowY: string) => overflowY === "auto" || overflowY === "scroll";
 
+/**
+ * 세로 스크롤바가 왼쪽에 뜨는 영역인가 — 글 방향이 오른쪽에서 왼쪽(`direction: rtl`)인 스크롤 요소.
+ * 계산된 방향으로 본다: 왼쪽 스크롤바를 `clientLeft` 에 넣지 않는 엔진(WebKit)이 있어 재서는 가릴 수 없다.
+ * 창 스크롤바는 방향과 상관없이 오른쪽에 뜬다(Chromium·Firefox·WebKit 에서 잼) — 페이지 전체는 늘 오른쪽으로 본다.
+ */
+export const barOnLeft = (el: Element) => el !== document.body && getComputedStyle(el).direction === "rtl";
+
+/**
+ * 좌우를 뒤집어 읽는 이름과 자리 — 판별은 전부 「스크롤바가 오른쪽」으로 쓰여 있다. 스크롤바가 왼쪽인 영역(`flip`)은
+ * 속성 이름의 좌우를 바꾸고(`near` = 스크롤바 쪽, `far` = 반대쪽) 화면 자리의 좌우를 거울처럼 뒤집어(x → -x) 같은 식으로 잰다.
+ */
+export const sidesOf = (flip: boolean) =>
+  flip ? ({ near: "Left", far: "Right" } as const) : ({ near: "Right", far: "Left" } as const);
+export function rectOf(el: Element, flip: boolean) {
+  const { left, right, top, bottom, width, height } = el.getBoundingClientRect();
+
+  return flip ? { left: -right, right: -left, top, bottom, width, height } : { left, right, top, bottom, width, height };
+}
+
 /** `::-webkit-scrollbar` 로 스크롤바를 꾸미는 엔진인가(Chromium·WebKit). */
 const WEBKIT_BARS = typeof CSS !== "undefined" && CSS.supports("selector(::-webkit-scrollbar)");
 

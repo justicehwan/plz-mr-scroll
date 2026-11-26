@@ -7,7 +7,7 @@
 import { GHOST_ATTRIBUTE, NUDGE_ATTRIBUTE, OVERLAY_ATTRIBUTE, OVERLAY_CSS, PAGE_GHOST_ATTRIBUTE } from "./constants.js";
 import { clippedAway } from "./float.js";
 import { follow, ghostOf, ghosts, lead, noOutside, thumbOf } from "./ghost.js";
-import { boxChildren, px } from "./measure.js";
+import { barOnLeft, boxChildren, px } from "./measure.js";
 import type { Bar, Plan } from "./types.js";
 
 export function createBars(sync: (els: HTMLElement[]) => void, isStopped: () => boolean) {
@@ -113,9 +113,13 @@ export function createBars(sync: (els: HTMLElement[]) => void, isStopped: () => 
     const style = getComputedStyle(el);
     const width = style.scrollbarWidth;
     const paddingTop = px(style.paddingTop);
-    const paddingRight = px(style.paddingRight);
+    // 세로 스크롤바가 왼쪽에 뜨는 영역(글 방향이 오른쪽에서 왼쪽)은 띄운 것도 왼쪽에 놓는다 — `near` 가 스크롤바 쪽이다.
+    const onLeft = barOnLeft(el);
+    const near = onLeft ? "left" : "right";
+    const far = onLeft ? "right" : "left";
+    const paddingNear = px(onLeft ? style.paddingLeft : style.paddingRight);
     const borderTop = px(style.borderTopWidth);
-    const borderRight = px(style.borderRightWidth);
+    const borderNear = px(onLeft ? style.borderLeftWidth : style.borderRightWidth);
     const borderBottom = px(style.borderBottomWidth);
     const borderLeft = px(style.borderLeftWidth);
     const rowGap = style.display === "flex" ? px(style.rowGap) : 0;
@@ -157,13 +161,13 @@ export function createBars(sync: (els: HTMLElement[]) => void, isStopped: () => 
     if (!showV) {
       ghost.v.bar.style.cssText = "display:none";
     } else if (outside) {
-      ghost.v.bar.style.cssText = `${pin}left:anchor(right);top:anchor(top);margin:${borderTop}px 0 0 ${offset}px;${tall}`;
+      ghost.v.bar.style.cssText = `${pin}${far}:anchor(${near});top:anchor(top);margin-top:${borderTop}px;margin-${far}:${offset}px;${tall}`;
     } else if (pinned) {
-      ghost.v.bar.style.cssText = `${pin}right:anchor(right);top:anchor(top);margin:${borderTop}px ${borderRight}px 0 0;${tall}`;
+      ghost.v.bar.style.cssText = `${pin}${near}:anchor(${near});top:anchor(top);margin-top:${borderTop}px;margin-${near}:${borderNear}px;${tall}`;
     } else {
       // 높이 0 인 첫 줄로 두고 스크롤 영역 위쪽에 붙여 둔다(sticky) — 스크롤해도 제자리에 있다. flex 의 줄 간격은 음수 여백으로 지운다.
       ghost.anchor.style.cssText = `display:block;position:sticky;top:${paddingTop}px;height:0;flex:none;align-self:stretch;margin:0 0 ${-rowGap}px;pointer-events:none;z-index:1`;
-      ghost.v.bar.style.cssText = `position:absolute;top:${-paddingTop}px;right:${-paddingRight}px;${tall};pointer-events:auto`;
+      ghost.v.bar.style.cssText = `position:absolute;top:${-paddingTop}px;${near}:${-paddingNear}px;${tall};pointer-events:auto`;
     }
     if (!showH) {
       ghost.h.bar.style.cssText = "display:none";
@@ -195,7 +199,8 @@ export function createBars(sync: (els: HTMLElement[]) => void, isStopped: () => 
 
         return Math.abs(at.left - left) <= 1 && Math.abs(at.top - top) <= 1 && !clippedAway(el, at, vertical);
       };
-      const verticalLeft = outside ? box.right + offset : box.right - borderRight - scrollbarWidth;
+      const inward = outside ? -offset : borderNear + scrollbarWidth;
+      const verticalLeft = onLeft ? box.left + inward - scrollbarWidth : box.right - inward;
       const horizontalTop =
         bottom === "outside" ? box.bottom + bottomOffset : box.bottom - borderBottom - height;
 

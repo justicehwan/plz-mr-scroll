@@ -5,7 +5,7 @@
 
 import { config } from "./config.js";
 import { DEBUG_ATTRIBUTE, DEBUG_CSS, METHOD_ATTRIBUTE, METHOD_X_ATTRIBUTE, QUIET, WHY_ATTRIBUTE } from "./constants.js";
-import { px } from "./measure.js";
+import { barOnLeft, px } from "./measure.js";
 import type { DebugInfo, Shape, StyleProp } from "./types.js";
 
 export function createDebug(debugInfo: WeakMap<HTMLElement, DebugInfo>, isStopped: () => boolean) {
@@ -38,13 +38,27 @@ export function createDebug(debugInfo: WeakMap<HTMLElement, DebugInfo>, isStoppe
     const shapes: Shape[] = [{ kind: `${tone} area`, x: rect.left, y: rect.top, w: rect.width, h: rect.height }];
     if (info && !page) {
       const style = getComputedStyle(el);
-      const left = rect.left + el.clientLeft;
+      // 세로 스크롤바가 왼쪽에 뜨는 영역(글 방향이 오른쪽에서 왼쪽)은 스크롤바·넓힌 자리를 왼쪽에 그린다.
+      const onLeft = barOnLeft(el);
+      /** 요소의 안쪽(여백 상자) 왼쪽 끝 — 왼쪽에 뜬 원래 스크롤바는 건너뛴다(`clientLeft` 는 엔진마다 달라 쓰지 않는다). */
+      const innerLeft = (target: HTMLElement, box: DOMRect) => {
+        const { borderLeftWidth, borderRightWidth } = getComputedStyle(target);
+        const borderLeft = px(borderLeftWidth);
+        const native = Math.max(0, target.offsetWidth - target.clientWidth - borderLeft - px(borderRightWidth));
+
+        return box.left + borderLeft + (barOnLeft(target) ? native : 0);
+      };
+      const left = innerLeft(el, rect);
       const top = rect.top + el.clientTop;
+      const borderLeft = px(style.borderLeftWidth);
       const borderRight = px(style.borderRightWidth);
       const borderBottom = px(style.borderBottomWidth);
       // 스크롤바가 놓인 자리 — 바깥에 띄웠으면 영역 밖, 그 밖에는 안쪽 끝.
       if (vertical !== "none" && info.width > 0) {
-        const x = vertical === "outside" ? rect.right + (info.offset ?? 0) : rect.right - borderRight - info.width;
+        const gap = vertical === "outside" ? -(info.offset ?? 0) : info.width;
+        const x = onLeft
+          ? rect.left + (vertical === "outside" ? 0 : borderLeft) + gap - info.width
+          : rect.right - (vertical === "outside" ? 0 : borderRight) - gap;
         shapes.push({ kind: `${tone} bar`, x, y: top, w: info.width, h: el.clientHeight });
       }
       if (horizontal !== "none" && info.height > 0) {
@@ -64,7 +78,7 @@ export function createDebug(debugInfo: WeakMap<HTMLElement, DebugInfo>, isStoppe
         const size = px(to);
         if (size <= 0 || !target.isConnected) continue;
         const box = target.getBoundingClientRect();
-        const x = box.left + target.clientLeft;
+        const x = innerLeft(target, box);
         const y = box.top + target.clientTop;
         if (prop === "paddingRight") pad(x + target.clientWidth - size, y, size, target.clientHeight);
         else if (prop === "paddingLeft") pad(x, y, size, target.clientHeight);
@@ -73,13 +87,14 @@ export function createDebug(debugInfo: WeakMap<HTMLElement, DebugInfo>, isStoppe
       // 스크롤바가 없을 때의 내용 자리 — 원래 스크롤바가 차지한 폭을 되돌리고, 바꾸기 전 여백으로 잰다.
       const before = (prop: StyleProp, now: string) =>
         px(info.changes.find((change) => change.target === el && change.prop === prop)?.from ?? now);
-      const nativeWidth = Math.max(0, el.offsetWidth - el.clientWidth - el.clientLeft - borderRight);
       const nativeHeight = Math.max(0, el.offsetHeight - el.clientHeight - el.clientTop - borderBottom);
-      const x0 = left + before("paddingLeft", style.paddingLeft);
-      // 예비 방식으로 넓힌 영역은 넓힌 만큼(바깥으로 민 여백)을 뺀다.
-      const margin = info.changes.find((change) => change.target === el && change.prop === "marginRight");
+      // 예비 방식으로 넓힌 영역은 넓힌 만큼(스크롤바 쪽 바깥으로 민 여백)을 뺀다.
+      const margin = info.changes.find(
+        (change) => change.target === el && change.prop === (onLeft ? "marginLeft" : "marginRight"),
+      );
       const widened = margin ? px(margin.from) - px(margin.to) : 0;
-      const x1 = left + el.clientWidth + nativeWidth - widened - before("paddingRight", style.paddingRight);
+      const x0 = rect.left + borderLeft + (onLeft ? widened : 0) + before("paddingLeft", style.paddingLeft);
+      const x1 = rect.right - borderRight - (onLeft ? 0 : widened) - before("paddingRight", style.paddingRight);
       const y0 = top + px(style.paddingTop);
       const y1 = top + el.clientHeight + nativeHeight - before("paddingBottom", style.paddingBottom);
       if (x1 > x0 && y1 > y0) shapes.push({ kind: `${tone} content`, x: x0, y: y0, w: x1 - x0, h: y1 - y0 });

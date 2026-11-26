@@ -176,6 +176,14 @@ Reasons — other:
 - Text areas (`textarea`) are handled only with the `textarea` option on. Even then, they can't get a floated scrollbar (only shrinking padding and `manual` work).
 - Regions matched by `exclude`.
 
+**WebKit: a right-to-left area that also scrolls sideways moves by itself.**
+
+- When a vertical scrollbar appears in such an area, WebKit shifts its horizontal scroll position by the scrollbar's width and doesn't move it back. This happens without the library too, and the library doesn't correct it.
+
+**Vertical writing modes aren't handled.**
+
+- Areas with `writing-mode: vertical-*` are evaluated as if they were horizontal.
+
 **Inline `!important` is not kept.**
 
 - When it changes a padding, margin or width written inline with `!important`, the priority is dropped, and it stays dropped after the value is put back. This only shows if a stylesheet rule also sets that property with `!important`. Add `data-scrollbar="off"` to such an area.

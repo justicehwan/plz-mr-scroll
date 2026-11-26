@@ -13,7 +13,7 @@ const PAGES = [
   'doc-blog', 'doc-landing', 'doc-market', 'doc-techdocs',
   'odd-browser', 'odd-legacy', 'odd-patchwork', 'odd-widgets',
 ]
-const url = (page: string, lib: boolean, sb: number) => `${BASE}/#page=${page}&lib=${lib ? 1 : 0}&sb=${sb}&notes=0`
+const url = (page: string, lib: boolean, sb: number, rtl = false) => `${BASE}/#page=${page}&lib=${lib ? 1 : 0}&sb=${sb}&notes=0${rtl ? '&rtl=1' : ''}`
 const TOLERANCE = 0.6
 
 type Row = {
@@ -126,24 +126,25 @@ async function sweep(page: Page): Promise<Row[]> {
   })
 }
 
-for (const id of PAGES) {
-  test(`${id} — 스크롤바가 생길 때 밀림`, async ({ page, browserName }, info) => {
+// 같은 페이지를 글 방향만 오른쪽에서 왼쪽으로 바꿔 한 번 더 잰다 — 스크롤 영역의 세로 스크롤바가 왼쪽에 뜬다.
+for (const [id, rtl] of PAGES.flatMap((id) => [[id, false], [id, true]] as const)) {
+  test(`${id}${rtl ? ' (RTL)' : ''} — 스크롤바가 생길 때 밀림`, async ({ page, browserName }, info) => {
     // Firefox 는 ::-webkit-scrollbar 를 몰라 폭 강제가 안 먹는다 — 창을 띄운 Firefox 의 기본 15px 로 잰다.
     const sb = browserName === 'firefox' ? 15 : 15
     const errors: string[] = []
     page.on('pageerror', (e) => { if (!String(e).includes('ResizeObserver loop')) errors.push(String(e).slice(0, 160)) })
-    await page.goto(url(id, false, sb))
+    await page.goto(url(id, false, sb, rtl))
     await page.waitForTimeout(700)
     const off = await sweep(page)
     await page.goto('about:blank')
-    await page.goto(url(id, true, sb))
+    await page.goto(url(id, true, sb, rtl))
     await page.waitForTimeout(700)
     const on = await sweep(page)
     const rows = on.map((row) => ({ ...row, shiftOff: off.find((o) => o.key === row.key)?.shift ?? null }))
     fs.mkdirSync('test-results/measure', { recursive: true })
-    fs.writeFileSync(`test-results/measure/lab-${info.project.name}-${id}.json`, JSON.stringify(rows, null, 1))
+    fs.writeFileSync(`test-results/measure/lab-${info.project.name}-${id}${rtl ? '-rtl' : ''}.json`, JSON.stringify(rows, null, 1))
     for (const r of rows) {
-      console.log(`[lab] ${info.project.name} ${id} ${r.key.padEnd(34)} 끔=${String(r.shiftOff).padEnd(5)} 켬=${String(r.shift).padEnd(5)} 방식=${r.method.padEnd(12)}${r.attachable ? '' : ' (띄울 수 없는 태그)'} ${r.note}`)
+      console.log(`[lab${rtl ? '-rtl' : ''}] ${info.project.name} ${id} ${r.key.padEnd(34)} 끔=${String(r.shiftOff).padEnd(5)} 켬=${String(r.shift).padEnd(5)} 방식=${r.method.padEnd(12)}${r.attachable ? '' : ' (띄울 수 없는 태그)'} ${r.note}`)
     }
     expect.soft(errors, `${id} 실행 오류`).toEqual([])
     for (const r of rows) {
@@ -159,15 +160,18 @@ for (const id of PAGES) {
       // 「상세 패널」은 페이지가 직접 스크롤바 폭을 재서 왼쪽 여백에 더하는 영역이다 — 장치가 원래 스크롤바를 숨겨도 그 스크립트가 잰 값이 남아
       // 왼쪽 여백이 한 번 더 들어간다. 두 장치가 같은 여백을 다루는 구조의 알려진 한계(리드미 「적용 시 권장사항」).
       if (id === 'odd-patchwork' && r.key.includes('odd-patchwork-detail__scroll')) continue
+      // WebKit 은 글 방향이 오른쪽에서 왼쪽이고 가로로도 넘치는 영역에 세로 스크롤바가 생기면, 엔진이 가로 스크롤 위치를 스크롤바 폭만큼 옮긴다
+      // (장치를 꺼도 같고, 스크롤바가 사라져도 돌아오지 않는다) — 장치가 받을 밀림이 아니다.
+      if (rtl && browserName === 'webkit' && id === 'app-dashboard' && r.key.includes('app-dashboard-table-box')) continue
       expect.soft(r.shift, `${id} ${r.key} 스크롤바가 생길 때 내용이 밀림 (방식 ${r.method})`).toBeLessThanOrEqual(TOLERANCE)
     }
   })
 
-  test(`${id} — 장치를 끄면 흔적이 남지 않음`, async ({ page }) => {
-    await page.goto(url(id, true, 15))
+  test(`${id}${rtl ? ' (RTL)' : ''} — 장치를 끄면 흔적이 남지 않음`, async ({ page }) => {
+    await page.goto(url(id, true, 15, rtl))
     await page.waitForTimeout(700)
     const applied = await page.evaluate(() => document.querySelectorAll('[data-scrollbar-undo],[data-scrollbar-overlay]').length)
-    await page.evaluate((next) => { location.hash = next.split('#')[1] }, url(id, false, 15))
+    await page.evaluate((next) => { location.hash = next.split('#')[1] }, url(id, false, 15, rtl))
     await page.waitForTimeout(500)
     const left = await page.evaluate(() => {
       const ghosts = ([...document.querySelectorAll('*')] as HTMLElement[])
@@ -675,4 +679,62 @@ test('넓힌 영역이 사라지면 같이 넓힌 조상 틀도 되돌린다', a
   console.log(`[gone] ${browserName} ${JSON.stringify(out)}`)
   expect(out.during, '시험 구조 확인 — 자르는 틀까지 같이 넓혀야 한다').toBe('-11px')
   expect.soft(out.after, '영역이 사라진 뒤 틀에 남은 것').toEqual({ style: 'overflow: hidden;', undo: null })
+})
+
+test('RTL 영역 — 왼쪽에 뜨는 스크롤바를 좌우를 뒤집어 받는다(왼쪽에서 오른쪽인 페이지 안에서도)', async ({ page, browserName }) => {
+  await page.goto(url('app-settings', true, 11))
+  await page.waitForTimeout(500)
+  const out = await page.evaluate(async () => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    const host = document.createElement('div')
+    host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;width:300px;background:#fff'
+    const area = 'dir="rtl" style="box-sizing:border-box;height:60px;overflow-y:auto;'
+    const text = '<div class="grow" style="height:20px"><span>글자</span></div>'
+    host.innerHTML = [
+      // 자기 여백 · 가운데 정렬 · 바깥 여백(조상의 왼쪽 여백) · 겹치기
+      `<div id="rtl-pad" ${area}padding:0 20px">${text}</div>`,
+      `<div id="rtl-center" ${area}"><div style="width:200px;margin:0 auto">${text}</div></div>`,
+      `<div style="padding:0 30px"><div id="rtl-outside" ${area}">${text}</div></div>`,
+      `<div id="rtl-overlay" ${area}">${text}</div>`,
+    ].join('')
+    document.body.appendChild(host)
+    await wait(300)
+    const ids = ['rtl-pad', 'rtl-center', 'rtl-outside', 'rtl-overlay']
+    const spot = (id: string) => {
+      const box = document.querySelector(`#${id} span`)!.getBoundingClientRect()
+      return [box.left, box.right]
+    }
+    const before = ids.map(spot)
+    for (const grow of host.querySelectorAll<HTMLElement>('.grow')) grow.style.height = '400px'
+    await wait(400)
+    const rows = ids.map((id, index) => {
+      const el = document.getElementById(id)!
+      const now = spot(id)
+      const bar = el.shadowRoot?.querySelector<HTMLElement>('[data-scrollbar-ghost] > div')
+      const shown = !!bar && el.hasAttribute('data-scrollbar-overlay') && bar.getBoundingClientRect().width > 0
+      const box = el.getBoundingClientRect()
+      return {
+        id,
+        shift: Math.max(Math.abs(now[0] - before[index][0]), Math.abs(now[1] - before[index][1])),
+        style: [el.style.paddingLeft, el.style.paddingRight].join('/'),
+        // 띄운 스크롤바의 자리 — 영역 왼쪽 끝을 기준으로(음수면 바깥 왼쪽).
+        bar: shown ? [bar!.getBoundingClientRect().left - box.left, bar!.getBoundingClientRect().right - box.left] : null,
+      }
+    })
+    const width = (() => { const el = document.getElementById('rtl-pad')!; return el.offsetWidth - el.clientWidth })()
+    host.remove()
+    return { rows, width }
+  })
+  console.log(`[rtl] ${browserName} ${JSON.stringify(out)}`)
+  const [pad, center, outside, overlay] = out.rows
+  const w = out.width
+  expect(w, '시험 구조 확인 — 폭을 차지하는 스크롤바가 떠야 한다').toBeGreaterThan(1)
+  for (const row of out.rows) expect.soft(row.shift, `${row.id} 스크롤바가 생길 때 글자가 밀림`).toBeLessThanOrEqual(TOLERANCE)
+  expect.soft(pad.style, '자기 여백 — 스크롤바 쪽(왼쪽) 여백을 줄인다(왼쪽/오른쪽)').toBe(`${20 - w}px/20px`)
+  // WebKit 은 왼쪽에 스크롤바가 뜬 영역에서 가운데 놓인 자식의 좌우 빈 자리가 같게 재지지 않아, 가운데 정렬 대신 내용 위에 겹친다(밀리지 않는 것은 같다).
+  if (center.bar) expect.soft(center.bar, '가운데 정렬을 못 쓰면 안쪽 왼쪽 끝에 겹친다').toEqual([0, w])
+  else expect.soft(center.style, '가운데 정렬 — 반대쪽(오른쪽)에 같은 폭을 준다').toBe(`/${w}px`)
+  // 가장자리에 붙여 띄울 수 없는 브라우저에서는 넓히기·겹치기로 물러난다 — 띄웠을 때만 자리를 본다.
+  if (outside.bar) expect.soft(outside.bar, '바깥 여백 — 영역의 왼쪽 바깥에 띄운다').toEqual([-w, 0])
+  expect.soft(overlay.bar, '겹치기 — 영역의 안쪽 왼쪽 끝에 띄운다').toEqual([0, w])
 })

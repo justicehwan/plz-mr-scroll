@@ -17,9 +17,12 @@ const LAYOUTS = {
   '본문 가운데 정렬': '.wrap{max-width:240px;margin:0 auto}',
   '좌우 여백': 'body{padding:0 24px}',
   '여백 없음': '',
+  // 글 방향이 오른쪽에서 왼쪽이어도 창 스크롤바는 오른쪽에 뜬다 — 같은 식으로 받아야 한다.
+  'RTL · 본문 가운데 정렬': '.wrap{max-width:240px;margin:0 auto}',
+  'RTL · 좌우 여백': 'body{padding:0 24px}',
 }
 
-const scene = (layout: string, forced: boolean) => `<!doctype html><html><head><meta charset="utf-8"><style>
+const scene = (layout: string, forced: boolean, rtl: boolean) => `<!doctype html><html${rtl ? ' dir="rtl"' : ''}><head><meta charset="utf-8"><style>
 *{box-sizing:border-box} html,body{margin:0} body{font:14px/1.5 system-ui}
 ${forced ? '::-webkit-scrollbar{width:15px} ::-webkit-scrollbar-thumb{background:#8d96a6}' : ''}
 header{position:fixed;top:0;left:0;right:0;height:48px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;background:#fff;z-index:10}
@@ -60,7 +63,7 @@ window.closeModal = () => { document.getElementById('modal').classList.remove('o
 for (const [name, css] of Object.entries(LAYOUTS)) {
   test(`페이지 전체 · ${name} — 스크롤바가 생기고 사라져도, 모달을 열고 닫아도 헤더·본문·떠 있는 요소가 제자리`, async ({ page, browserName }) => {
     // WebKit 은 맥에서 창 스크롤바가 겹쳐 뜬다(폭 0) — `::-webkit-scrollbar` 로 폭을 줘야 볼 것이 생긴다.
-    await page.route('**/__page.html', (route) => route.fulfill({ contentType: 'text/html', body: scene(css, browserName === 'webkit') }))
+    await page.route('**/__page.html', (route) => route.fulfill({ contentType: 'text/html', body: scene(css, browserName === 'webkit', name.startsWith('RTL')) }))
     await page.goto(`${BASE}/__page.html`)
     const settle = () => page.waitForTimeout(350)
     const where = () => page.evaluate(() => (window as any).where() as Record<string, number>)

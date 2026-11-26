@@ -7,7 +7,7 @@ import { isExcluded, skipsTextarea } from "./config.js";
 import { CENTER_TOLERANCE, DEBUG_ATTRIBUTE, NUDGE_ATTRIBUTE, PAGE_GHOST_ATTRIBUTE } from "./constants.js";
 import { canAnchor, canFloatOutside, canOverlay, isShaped } from "./float.js";
 import { cannotAttach, noOutside } from "./ghost.js";
-import { flowChildren, keepsBox, px, scrollbarWidthOf, scrolls } from "./measure.js";
+import { barOnLeft, flowChildren, keepsBox, px, rectOf, scrollbarWidthOf, scrolls, sidesOf } from "./measure.js";
 import { hasRoomBelow, isVisibleBox, planWiden, whyNot } from "./room.js";
 import type { Plan, StyleChange } from "./types.js";
 
@@ -16,17 +16,22 @@ const NONE: Plan = { manualWidth: 0, overlay: false, changes: [], dependsOn: [] 
 /**
  * 2. 가운데 정렬 — 안쪽으로 내려가며 좌우 빈 자리가 같은 내용을 찾는다.
  * `strict` 가 아니면(= `center` 표시) 빈 자리가 있기만 하면 가운데 정렬로 본다.
+ * `flip` — 스크롤바가 왼쪽에 뜬다. 좌우를 뒤집어 같은 식으로 잰다(아래의 「왼쪽」이 스크롤바 반대쪽, 「오른쪽」이 스크롤바 쪽이다).
  */
 function planCenter(
   el: HTMLElement,
   scrollbarWidth: number,
   strict: boolean,
+  flip: boolean,
 ): (Pick<Plan, "changes" | "dependsOn"> & { overlay?: boolean }) | null {
+  const { near, far } = sidesOf(flip);
+  const padLeft = `padding${far}` as const;
+  const padRight = `padding${near}` as const;
   const style = getComputedStyle(el);
-  const paddingLeft = px(style.paddingLeft);
-  const box = el.getBoundingClientRect();
-  let left = box.left + px(style.borderLeftWidth) + paddingLeft;
-  let width = el.clientWidth - paddingLeft - px(style.paddingRight);
+  const paddingLeft = px(style[padLeft]);
+  const box = rectOf(el, flip);
+  let left = box.left + px(style[`border${far}Width`]) + paddingLeft;
+  let width = el.clientWidth - paddingLeft - px(style[padRight]);
   let node = el;
   const dependsOn: Element[] = [];
   // 깊이를 세지 않는다 — 자식이 없거나, 안쪽 스크롤 영역·목록을 만나거나, 처리할 곳을 찾으면 끝난다.
@@ -40,7 +45,7 @@ function planCenter(
     const child = getComputedStyle(widest);
     // 안쪽 스크롤 영역은 자기 몫을 스스로 맞춘다 — 여기서 건드리면 둘이 같은 여백을 다툰다.
     if (scrolls(child.overflowY) || scrolls(child.overflowX)) return null;
-    const rect = widest.getBoundingClientRect();
+    const rect = rectOf(widest, flip);
     const gapLeft = rect.left - left;
     const gapRight = left + width - rect.right;
     const slack = gapLeft + gapRight;
@@ -55,17 +60,17 @@ function planCenter(
       };
       if (strict && children.some(sharesRow)) return null;
       if (slack >= scrollbarWidth) {
-        return { changes: [{ target: el, prop: "paddingLeft", value: `${paddingLeft + scrollbarWidth}px` }], dependsOn };
+        return { changes: [{ target: el, prop: padLeft, value: `${paddingLeft + scrollbarWidth}px` }], dependsOn };
       }
       // 남는 자리가 스크롤바보다 좁다 — 왼쪽은 스크롤바가 없을 때의 빈 자리만큼 주고, 그래서 좁아진 만큼은 그 자식의 오른쪽 여백에서 뺀다.
       const shrink = (scrollbarWidth - slack) / 2;
-      const childPaddingRight = px(child.paddingRight);
+      const childPaddingRight = px(child[padRight]);
       // 입력창은 `textarea` 옵션을 켜야 건드린다 — 다른 영역의 자식으로 있을 때도 같다.
       if (children.length === 1 && childPaddingRight >= shrink && !skipsTextarea(widest)) {
         return {
           changes: [
-            { target: el, prop: "paddingLeft", value: `${paddingLeft + slack + shrink}px` },
-            { target: widest, prop: "paddingRight", value: `${childPaddingRight - shrink}px` },
+            { target: el, prop: padLeft, value: `${paddingLeft + slack + shrink}px` },
+            { target: widest, prop: padRight, value: `${childPaddingRight - shrink}px` },
           ],
           dependsOn,
         };
@@ -75,42 +80,43 @@ function planCenter(
       if (canOverlay(el, scrollbarWidth)) return { changes: [], overlay: true, dependsOn };
 
       // ponytail: 자식이 여럿이거나 안쪽 깊이면 남는 만큼만 준다 — 스크롤바 폭의 절반까지 밀릴 수 있다.
-      return { changes: [{ target: el, prop: "paddingLeft", value: `${paddingLeft + slack}px` }], dependsOn };
+      return { changes: [{ target: el, prop: padLeft, value: `${paddingLeft + slack}px` }], dependsOn };
     }
     // 폭을 꽉 채운 자식이 여럿이면 목록이다 — 가운데 정렬이 아니다. (`center` 표시가 있으면 가장 넓은 자식을 따라 계속 내려간다.)
     if (strict && children.length > 1) return null;
-    const childPaddingRight = px(child.paddingRight);
+    const childPaddingRight = px(child[padRight]);
     // 스크롤바가 없으면 최대 폭에 걸려 가운데에 놓이던 자식이면, 그때의 왼쪽 빈 자리만큼은 왼쪽 여백으로 주고 나머지만 자식 여백에서 뺀다.
     // ponytail: 최대 폭에 걸린 자식은 가운데 정렬이라고 본다 — 왼쪽 정렬이면 이 구간(화면 폭 11px 범위)에서 스크롤바 폭의 절반까지 밀린다.
     const cap = child.maxWidth.endsWith("px") ? px(child.maxWidth) : Infinity;
     const gap = Math.max(0, (width + scrollbarWidth - cap) / 2);
     if (childPaddingRight >= scrollbarWidth - gap && !skipsTextarea(widest)) {
       const changes: StyleChange[] = [
-        { target: widest, prop: "paddingRight", value: `${childPaddingRight - scrollbarWidth + gap}px` },
+        { target: widest, prop: padRight, value: `${childPaddingRight - scrollbarWidth + gap}px` },
       ];
-      if (gap > 0) changes.push({ target: el, prop: "paddingLeft", value: `${paddingLeft + gap}px` });
+      if (gap > 0) changes.push({ target: el, prop: padLeft, value: `${paddingLeft + gap}px` });
 
       return { changes, dependsOn };
     }
-    left = rect.left + px(child.borderLeftWidth) + px(child.paddingLeft);
-    width = widest.clientWidth - px(child.paddingLeft) - childPaddingRight;
+    left = rect.left + px(child[`border${far}Width`]) + px(child[padLeft]);
+    width = widest.clientWidth - px(child[padLeft]) - childPaddingRight;
     node = widest;
   }
-
-  return null;
 }
 
 /** 스크롤바가 떠 있는 보통 영역의 판별 — 위에서부터 맞는 첫 번째 방식. */
 function planNormal(el: HTMLElement, scrollbarWidth: number, floats = false): Plan {
   const mode = el.dataset.scrollbar;
   const style = getComputedStyle(el);
-  const paddingRight = px(style.paddingRight);
+  // 스크롤바가 왼쪽에 뜨는 영역(글 방향이 오른쪽에서 왼쪽)은 좌우를 뒤집어 판별한다 — 아래의 「오른쪽」이 전부 스크롤바 쪽이다.
+  const flip = barOnLeft(el);
+  const padNear = `padding${sidesOf(flip).near}` as const;
+  const paddingRight = px(style[padNear]);
   if (paddingRight >= scrollbarWidth) {
-    const changes: StyleChange[] = [{ target: el, prop: "paddingRight", value: `${paddingRight - scrollbarWidth}px` }];
+    const changes: StyleChange[] = [{ target: el, prop: padNear, value: `${paddingRight - scrollbarWidth}px` }];
     if (keepsBox(el, changes)) return { ...NONE, method: "padding", changes };
   }
   if (mode === "manual") return { ...NONE, method: "manual", manualWidth: scrollbarWidth };
-  const center = planCenter(el, scrollbarWidth, mode !== "center");
+  const center = planCenter(el, scrollbarWidth, mode !== "center", flip);
   if (center && keepsBox(el, center.changes)) {
     return center.overlay
       ? { ...NONE, ...center, method: "overlay", why: "center-too-narrow" }
@@ -118,7 +124,7 @@ function planNormal(el: HTMLElement, scrollbarWidth: number, floats = false): Pl
   }
   if (mode === "center") return { ...NONE, method: "none", why: "center-not-applicable" };
   // 페이지 전체는 바깥이 없다.
-  const room = el === document.body ? null : planWiden(el, scrollbarWidth);
+  const room = el === document.body ? null : planWiden(el, scrollbarWidth, flip);
   // 옆 요소에 막혀 있으면 지금은 못 쓴다 — 그래도 그 요소들은 계속 지켜본다(좁아져 자리가 비면 바깥으로 돌아온다).
   const free = room && !room.blocked ? room : null;
   const around = { dependsOn: room?.watch ?? [], neighbors: room?.watch };
@@ -138,7 +144,7 @@ function planNormal(el: HTMLElement, scrollbarWidth: number, floats = false): Pl
   const overlays = canOverlay(el, scrollbarWidth, false, floats);
   // 띄울 수 없을 때만 넓힌다 — 눈에 보이는 상자는 넓히지 않고 다음 방식으로 넘긴다.
   // 자신이 오려 내서 바깥을 못 쓰는 영역은 띄울 수 없는 것이 아니다 — 겹칠 수 있으면 넓히지 않고 겹친다.
-  if (free?.widen && !isVisibleBox(el, style) && !(shaped && overlays)) {
+  if (free?.widen && !isVisibleBox(el, style, flip) && !(shaped && overlays)) {
     return { ...NONE, ...around, method: "widen", why, changes: free.widen };
   }
   if (overlays) return { ...NONE, ...around, method: "overlay", why, overlay: true };
@@ -267,7 +273,7 @@ function planFixed(scrollbarWidth: number, pageChanges: StyleChange[]): Pick<Pla
 
         return;
       }
-      const center = planCenter(el, scrollbarWidth, true);
+      const center = planCenter(el, scrollbarWidth, true, false);
       if (!center || center.overlay) return;
       changes.push(...center.changes);
       dependsOn.push(...center.dependsOn);
@@ -339,7 +345,7 @@ function planArea(el: HTMLElement, scrollbarWidth: number, measuredHeight: numbe
   // 세로 스크롤바는 실제로 세로로 넘칠 때만 띄운다 — 가로 스크롤바 때문에만 생겼거나 비워 둔 자리뿐이면 숨기는 것으로 끝난다.
   const tall = scrollbarWidth > 0 && el.scrollHeight - el.clientHeight > scrollbarHeight + 1;
 
-  const under = below && !below.blocked;
+  const under = below !== null && !below.blocked;
 
   return {
     ...NONE,
@@ -354,8 +360,8 @@ function planArea(el: HTMLElement, scrollbarWidth: number, measuredHeight: numbe
     // 세로가 옆 요소에 막혀 바깥을 못 쓴 경우에도 그 요소들을 계속 지켜본다(비면 바깥으로 돌아온다).
     dependsOn: [...vertical.dependsOn, ...(below?.watch ?? [])],
     neighbors: [...(vertical.neighbors ?? []), ...(below?.watch ?? [])],
-    bottom: below && !below.blocked ? "outside" : "inside",
-    bottomOffset: below && !below.blocked ? below.offset : 0,
+    bottom: under ? "outside" : "inside",
+    bottomOffset: under ? below.offset : 0,
     height: scrollbarHeight,
   };
 }

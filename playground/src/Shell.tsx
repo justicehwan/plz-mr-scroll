@@ -3,7 +3,7 @@ import { MrScroll } from 'plz-mr-scroll/react'
 import { pages } from './registry'
 import './shell.css'
 
-type State = { page: string; lib: boolean; sb: number; notes: boolean; gap?: number; debug?: boolean; exclude?: string; suppress?: boolean; textarea?: boolean }
+type State = { page: string; lib: boolean; sb: number; notes: boolean; gap?: number; debug?: boolean; exclude?: string; suppress?: boolean; textarea?: boolean; rtl?: boolean }
 
 function read(): State {
   const q = new URLSearchParams(location.hash.slice(1))
@@ -21,6 +21,8 @@ function read(): State {
     suppress: q.get('suppress') === '0' ? false : undefined,
     // textarea=1 이면 입력창도 본다.
     textarea: q.get('textarea') === '1' || undefined,
+    // rtl=1 이면 문서의 글 방향을 오른쪽에서 왼쪽으로 바꾼다(스크롤 영역의 세로 스크롤바가 왼쪽에 뜬다).
+    rtl: q.get('rtl') === '1' || undefined,
   }
 }
 
@@ -32,7 +34,7 @@ export function Shell() {
   const [state, setState] = useState(read)
   const update = (patch: Partial<State>) => {
     const next = { ...state, ...patch }
-    location.hash = `page=${next.page}&lib=${next.lib ? 1 : 0}&sb=${next.sb}&notes=${next.notes ? 1 : 0}${next.gap === undefined ? '' : `&gap=${next.gap}`}${next.debug ? '&debug=1' : ''}${next.exclude ? `&exclude=${encodeURIComponent(next.exclude)}` : ''}${next.suppress === false ? '&suppress=0' : ''}${next.textarea ? '&textarea=1' : ''}`
+    location.hash = `page=${next.page}&lib=${next.lib ? 1 : 0}&sb=${next.sb}&notes=${next.notes ? 1 : 0}${next.gap === undefined ? '' : `&gap=${next.gap}`}${next.debug ? '&debug=1' : ''}${next.exclude ? `&exclude=${encodeURIComponent(next.exclude)}` : ''}${next.suppress === false ? '&suppress=0' : ''}${next.textarea ? '&textarea=1' : ''}${next.rtl ? '&rtl=1' : ''}`
     setState(next)
   }
   useEffect(() => {
@@ -48,10 +50,11 @@ export function Shell() {
     // 0 = 브라우저 기본 스크롤바. 그 밖에는 그 폭으로 자리를 차지하는 스크롤바를 강제한다(겹쳐 뜨는 환경에서도 보려고).
     root.classList.toggle('lab-force', state.sb > 0)
     root.style.setProperty('--lab-sb', `${state.sb}px`)
+    root.dir = state.rtl ? 'rtl' : ''
     return () => {
       if (name) root.classList.remove(name)
     }
-  }, [current, state.sb])
+  }, [current, state.sb, state.rtl])
 
   if (!current) return <p style={{ padding: 60 }}>src/pages 에 페이지가 없다.</p>
   const Page = current.default
@@ -92,6 +95,10 @@ export function Shell() {
         <label className={state.textarea ? 'lab-check on' : 'lab-check'}>
           <input type="checkbox" checked={!!state.textarea} onChange={(e) => update({ textarea: e.target.checked || undefined })} />
           입력창 보기 — 지금 {state.textarea ? '켜짐' : '꺼짐'}
+        </label>
+        <label className={state.rtl ? 'lab-check on' : 'lab-check'}>
+          <input type="checkbox" checked={!!state.rtl} onChange={(e) => update({ rtl: e.target.checked || undefined })} />
+          오른쪽→왼쪽(RTL) — 지금 {state.rtl ? '켜짐' : '꺼짐'}
         </label>
       </div>
       {state.notes && (

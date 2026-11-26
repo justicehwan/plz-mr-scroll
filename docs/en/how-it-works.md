@@ -160,6 +160,12 @@ It's decided separately from the vertical one.
 - For always-on scrollbars (`overflow: scroll`), it doesn't hide the empty strip in text areas, because it can't detect when edited text starts to overflow (only the value changes).
 - With the option off, it also leaves alone the padding of a text area that's a full-width child of another scroll area.
 
+### Right-to-left areas (`direction: rtl`)
+
+- A scroll area whose text runs right to left shows its vertical scrollbar on the left. Such an area goes through the same order with left and right swapped: it shrinks the left padding, adds to the right for centered content, floats the scrollbar outside on the left, or overlays it on the left edge.
+- It's decided per area from the computed `direction`, so a right-to-left panel inside a left-to-right page (or the reverse) works. There is nothing to configure.
+- The window scrollbar stays on the right whatever the direction (measured in Chromium, Firefox and WebKit), so page scrolling is handled the same as before.
+
 ### Nested areas
 
 - When a scroll area contains another one (including areas inside the page itself), it decides and applies the outer one first, then decides the inner one.

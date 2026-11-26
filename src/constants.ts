@@ -50,4 +50,4 @@ export const OVERLAY_CSS = `[${OVERLAY_ATTRIBUTE}]{scrollbar-width:none!importan
 export const DEFAULT_THUMB = "rgba(0, 0, 0, 0.35)";
 
 /** 우리가 바꾸는 인라인 style 속성 — 되돌릴 때도 이 목록에 있는 것만 쓴다. */
-export const STYLE_PROPS = ["paddingRight", "paddingLeft", "paddingBottom", "marginRight", "width", "scrollbarGutter", "translate"] as const;
+export const STYLE_PROPS = ["paddingRight", "paddingLeft", "paddingBottom", "marginRight", "marginLeft", "width", "scrollbarGutter", "translate"] as const;
