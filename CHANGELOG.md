@@ -2,6 +2,21 @@
 
 Changes that affect people using the library. The newest version is at the top.
 
+## 0.3.0 - 2026-11-26
+
+### Added
+
+- **Right-to-left areas (`direction: rtl`).** A scroll area whose text runs right to left shows its scrollbar on the left; before, the library still adjusted the right side and the content moved by the scrollbar's width. Such areas now go through the same four methods with left and right swapped. It is decided per area, so mixed pages work, and there is nothing to configure. See [How it works](./docs/en/how-it-works.md#right-to-left-areas-direction-rtl).
+- Page scrolling in right-to-left documents is covered by tests. The window scrollbar stays on the right in Chromium, Firefox and WebKit, so nothing changed there.
+
+### Changed
+
+- **Which border makes a wrapper count as a visible box.** When looking for room below an area for the horizontal scrollbar, the library now checks the wrapper's bottom border (it used to check the right one). A horizontal scrollbar no longer floats below a wrapper's bottom border line; it is overlaid on the content instead.
+
+### Known limits
+
+- WebKit shifts a right-to-left area that also scrolls sideways by itself; vertical writing modes are evaluated as horizontal. See [Limitations](./docs/en/troubleshooting.md#limitations).
+
 ## 0.2.2 - 2026-11-26
 
 ### Fixed
