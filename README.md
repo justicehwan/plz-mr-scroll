@@ -180,7 +180,7 @@ uninstall();
 ```
 
 - Nothing to install and no bundler. Paste it into any HTML page — in `<head>` too, since it waits for the document to load.
-- For production, pin a version: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.1/+esm`.
+- For production, pin a version: `https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.2/+esm`.
 
 &nbsp;
 

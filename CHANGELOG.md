@@ -2,6 +2,18 @@
 
 Changes that affect people using the library. The newest version is at the top.
 
+## 0.2.2 - 2026-11-26
+
+### Fixed
+
+- **Styles left behind when a scroll area is removed.** In browsers without anchor positioning, an area that was widened together with a wrapper that clips overflow left the wrapper's margin, width and padding changed after the area was removed from the page.
+- **Slow pages when the content keeps growing.** While the window scrollbar stays visible, every change in the page's height walked the whole document, twice. Height-only changes are now skipped (on a 10,000-element page, about 27 ms less per change).
+- Uninstalling restores values in reverse order, so an element changed twice ends at its original value.
+
+### Docs
+
+- Limitations: inline `!important` is not kept on padding, margin or width the library changes.
+
 ## 0.2.1 - 2026-11-24
 
 - README only: a link to this changelog, a bigger demo button, more room around the GIFs. No code changes.

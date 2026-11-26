@@ -1,6 +1,6 @@
 {
   "name": "plz-mr-scroll",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Don't push me plz, Mr. Scroll. Keeps your layout still when a scrollbar appears.",
   "keywords": [
     "scrollbar",

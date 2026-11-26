@@ -180,7 +180,7 @@ uninstall();
 ```
 
 - 不用安装，也不用打包工具。贴到任何 HTML 页面里都行 — 放在 `<head>` 里也可以，它会等文档加载完再开始。
-- 正式环境请固定版本：`https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.1/+esm`。
+- 正式环境请固定版本：`https://cdn.jsdelivr.net/npm/plz-mr-scroll@0.2.2/+esm`。
 
 &nbsp;
 
