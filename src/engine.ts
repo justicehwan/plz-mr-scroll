@@ -27,7 +27,8 @@ import type { Applied, DebugInfo } from "./types.js";
 /** 바꿔 둔 스타일·표시를 전부 원래대로 — 장치가 내려갈 때와, 앞선 장치가 남긴 것이 있을 때 쓴다. */
 function restoreAll() {
   for (const target of document.querySelectorAll<HTMLElement>(`[${UNDO_ATTRIBUTE}]`)) {
-    for (const entry of (target.getAttribute(UNDO_ATTRIBUTE) ?? "").split("|")) {
+    // 뒤에서부터 되돌린다 — 같은 속성을 두 번 바꿨으면 나중 기록의 「원래 값」은 앞선 기록이 쓴 값이다.
+    for (const entry of (target.getAttribute(UNDO_ATTRIBUTE) ?? "").split("|").reverse()) {
       const [name, author = ""] = entry.split("=");
       const prop = STYLE_PROPS.find((known) => known === name);
       if (prop) target.style[prop] = author;
@@ -164,6 +165,13 @@ export function start() {
     if (entries.length > 0) target.setAttribute(UNDO_ATTRIBUTE, entries.join("|"));
     else target.removeAttribute(UNDO_ATTRIBUTE);
   };
+  /** 써 둔 값들을 되돌린다 — 우리가 쓴 값 그대로일 때만(그 사이 다른 코드가 바꿨으면 그 값이 원래 값이다). */
+  const revert = (entries: Applied[]) => {
+    for (const { target, prop, author, applied: value } of entries) {
+      if (target.style[prop] === value) target.style[prop] = author;
+      dropUndo(target, `${prop}=${author}`);
+    }
+  };
   /**
    * 스크롤 영역들을 다시 판별한다. 한 묶음에 바깥 영역과 그 안의 영역이 같이 있으면 바깥 것부터 판별해 적용한 뒤에 안쪽 것을 판별한다 —
    * 한꺼번에 하면 안쪽 영역이 「바깥 영역의 처리가 잠깐 되돌려진 상태」를 보고 판단한다
@@ -209,11 +217,7 @@ export function start() {
       );
       const held = mine.filter(({ target }) => kept.has(target));
       const freed = mine.filter(({ target }) => !kept.has(target));
-      for (const { target, prop, author, applied: value } of freed) {
-        // 우리가 쓴 값 그대로일 때만 되돌린다 — 그 사이 다른 코드가 바꿨으면 그 값이 원래 값이다.
-        if (target.style[prop] === value) target.style[prop] = author;
-        dropUndo(target, `${prop}=${author}`);
-      }
+      revert(freed);
       if (freed.length > 0) released.set(el, freed);
       if (held.length > 0) heldBy.set(el, held);
       applied.delete(el);
@@ -345,8 +349,41 @@ export function start() {
     for (const el of excluded) unobserve(el);
     if (retry.length > 0) sync(retry);
   };
+  /** 영역 → 마지막 크기 알림에 실려 온 상자 크기(`폭/높이`). 아래 두 감시가 같은 변화를 따로 알려 판별이 두 번 도는 것을 거른다. */
+  const lastSizes = new WeakMap<Element, string>();
+  /**
+   * 페이지 전체의 높이만 바뀐 알림은 넘겨도 되는가 — 창 스크롤바가 그대로 떠 있는 동안에는 판별이 높이에 기대지 않는다.
+   * 넘기지 않으면 내용이 늘 때마다 문서의 요소를 전부 훑는다(`planFixed`).
+   * 띄웠거나 빈 띠를 숨긴 동안, 늘 띄워 두는 설정(overflow: scroll)은 높이에 따라 처리가 갈려 넘기지 않는다.
+   */
+  const pageHeightOnly = () => {
+    const page = document.body;
+    const root = document.documentElement;
+    if (root.hasAttribute(OVERLAY_ATTRIBUTE) || scrollbarWidthOf(page) === 0) return false;
+    if ([root, page].some((box) => getComputedStyle(box).overflowY === "scroll")) return false;
+    const known = scrollSizes.get(page);
+    if (known === undefined) return true;
+    // 넘친 폭까지 바뀌었으면 판별이 달라질 수 있다. 높이만 바뀌었으면 기억만 고쳐 둔다(안 고치면 다음 DOM 변화 때 다시 판별한다).
+    if (!known.startsWith(`${root.scrollWidth}x`)) return false;
+    scrollSizes.set(page, scrollSizeOf(page));
+
+    return true;
+  };
   const onResize = (entries: ResizeObserverEntry[]) => {
-    sync([...new Set(entries.map((entry) => entry.target as HTMLElement))]);
+    const els = new Set<HTMLElement>();
+    for (const entry of entries) {
+      const el = entry.target as HTMLElement;
+      const border = entry.borderBoxSize?.[0];
+      const content = entry.contentBoxSize?.[0];
+      const width = `${border?.inlineSize}|${content?.inlineSize ?? entry.contentRect.width}/`;
+      const size = `${width}${border?.blockSize}|${content?.blockSize ?? entry.contentRect.height}`;
+      const last = lastSizes.get(el);
+      lastSizes.set(el, size);
+      if (last === size) continue;
+      if (el === document.body && last?.startsWith(width) && pageHeightOnly()) continue;
+      els.add(el);
+    }
+    if (els.size > 0) sync([...els]);
   };
   // 스크롤바가 생기고 사라지면 그 영역의 내용 폭이 바뀌어 불린다 — 화면에 그리기 전이라 여백이 튀지 않는다.
   const contentObserver = new ResizeObserver(onResize);
@@ -360,7 +397,11 @@ export function start() {
   };
   const unobserve = (el: Element) => {
     if (!observed.delete(el)) return;
+    lastSizes.delete(el);
     if (el instanceof HTMLElement) {
+      // 영역이 사라져도 그 바깥에 써 둔 값(같이 넓힌 조상 틀)은 남는다 — 여기서 되돌린다. 영역이 다시 붙으면 처음부터 판별한다.
+      revert(applied.get(el) ?? []);
+      applied.delete(el);
       forget(el);
       watchNeighbors(el, []);
       noOutside.delete(el);

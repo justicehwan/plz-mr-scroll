@@ -176,6 +176,10 @@ Reasons — other:
 - Text areas (`textarea`) are handled only with the `textarea` option on. Even then, they can't get a floated scrollbar (only shrinking padding and `manual` work).
 - Regions matched by `exclude`.
 
+**Inline `!important` is not kept.**
+
+- When it changes a padding, margin or width written inline with `!important`, the priority is dropped, and it stays dropped after the value is put back. This only shows if a stylesheet rule also sets that property with `!important`. Add `data-scrollbar="off"` to such an area.
+
 **It doesn't shrink padding on boxes whose size it can't preserve.**
 
 - If you shrink the padding of a box whose size is fixed in `content-box` terms (`box-sizing: content-box`), the content area stays the same and only the box gets smaller.

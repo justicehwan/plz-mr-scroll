@@ -646,3 +646,33 @@ test('띄운 스크롤바가 꾸민 손잡이의 테두리까지 따라간다 �
   expect.soft(out.want.border, '시험 구조 확인 — 원래 손잡이에 테두리가 있다').toBe('3px')
   expect.soft(out.got, '띄운 손잡이가 원래 손잡이와 같은 테두리·칠 범위·색·둥글기를 갖는다').toEqual(out.want)
 })
+
+test('넓힌 영역이 사라지면 같이 넓힌 조상 틀도 되돌린다', async ({ page, browserName }) => {
+  test.skip(browserName === 'firefox', '이 페이지의 스크롤바 폭 강제(::-webkit-scrollbar)가 안 먹는다')
+  await page.goto(url('app-settings', false, 11))
+  await page.waitForTimeout(500)
+  const out = await page.evaluate(async (path) => {
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    // 가장자리에 붙여 띄울 수 없는 브라우저를 흉내 낸다 — 그래야 넓히기로 받는다.
+    const supports = CSS.supports.bind(CSS)
+    CSS.supports = ((...args: [string, string?]) => (args.join(' ').includes('anchor(') ? false : supports(...(args as [string])))) as typeof CSS.supports
+    const host = document.createElement('div')
+    host.style.cssText = 'position:fixed;z-index:500;left:60px;top:120px;width:300px;padding:0 40px;background:#fff'
+    host.innerHTML = '<div id="clip" style="overflow:hidden"><div id="gone" style="height:100px;overflow-y:auto;display:grid"><div style="height:400px">내용</div></div></div>'
+    document.body.appendChild(host)
+    const clip = document.getElementById('clip')!
+    const core = await import(/* @vite-ignore */ path)
+    const uninstall = core.installMrScroll()
+    await wait(300)
+    const during = clip.style.marginRight
+    document.getElementById('gone')!.remove()
+    await wait(200)
+    const after = { style: clip.getAttribute('style'), undo: clip.getAttribute('data-scrollbar-undo') }
+    uninstall()
+    CSS.supports = supports
+    return { during, after }
+  }, CORE)
+  console.log(`[gone] ${browserName} ${JSON.stringify(out)}`)
+  expect(out.during, '시험 구조 확인 — 자르는 틀까지 같이 넓혀야 한다').toBe('-11px')
+  expect.soft(out.after, '영역이 사라진 뒤 틀에 남은 것').toEqual({ style: 'overflow: hidden;', undo: null })
+})

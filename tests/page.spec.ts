@@ -92,6 +92,23 @@ for (const [name, css] of Object.entries(LAYOUTS)) {
     }
     await page.evaluate(() => (window as any).addLate())
     await check('고정 버튼이 늦게 생김')
+    // 창 스크롤바가 그대로 떠 있는 동안에는 본문 높이만 늘어도 문서의 요소를 다시 훑지 않는다(판별이 높이에 기대지 않는다).
+    if (bar.native >= 2) {
+      const walks = await page.evaluate(async () => {
+        let count = 0
+        const real = Element.prototype.querySelectorAll
+        Element.prototype.querySelectorAll = function (this: Element, selector: string) {
+          if (selector === '*') count += 1
+          return real.call(this, selector)
+        } as typeof real
+        document.getElementById('wrap')!.style.paddingBottom = '400px'
+        await new Promise((done) => setTimeout(done, 300))
+        Element.prototype.querySelectorAll = real
+        return count
+      })
+      expect.soft(walks, '본문 높이만 늘었을 때 문서 전체를 훑은 횟수').toBe(0)
+      await check('본문 높이만 늘어남')
+    }
     for (const lock of ['pad', 'plain', 'whole']) {
       for (const round of [1, 2]) {
         await page.evaluate((type) => (window as any).openModal(type), lock)
